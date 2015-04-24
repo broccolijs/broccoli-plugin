@@ -46,6 +46,13 @@ BroccoliPlugin.prototype.build = function() {
 BroccoliPlugin.prototype.cleanup = function() {
 }
 
+BroccoliPlugin.prototype.rebuild = function() {
+  // Compatibility code for old Broccoli goes here.
+}
+
+BroccoliPlugin.prototype.read = function(readTree) {
+  // Compatibility code for old Broccoli goes here.
+}
 
 function getState(plugin) {
   if (!plugin._pluginState) {

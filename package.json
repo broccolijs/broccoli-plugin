@@ -12,6 +12,10 @@
   "keywords": [
     "broccoli-plugin"
   ],
+  "scripts": {
+    "pretest": "test/install_dependencies.sh",
+    "test": "./node_modules/.bin/mocha"
+  },
   "dependencies": {
     "promise-map-series": "^0.2.1",
     "quick-temp": "^0.1.2",
@@ -20,6 +24,8 @@
     "symlink-or-copy": "^1.0.1"
   },
   "devDependencies": {
+    "broccoli-fixturify": "^0.1.0",
+    "fixturify": "^0.1.1",
     "mocha": "^2.2.5"
   }
 }

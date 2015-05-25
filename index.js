@@ -7,6 +7,7 @@ var fs = require('fs')
 var path = require('path')
 
 
+module.exports = Plugin
 function Plugin() {
   this._instantiationStack = (new Error()).stack
   this._initializationState = 0
@@ -32,15 +33,15 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterfa
     this._builderFeatures = builderFeatures // corresponding feature flags in builder
     this._builderInterface = builderInterface
 
-    if (!this._initializationState !== 0)
+    if (this._initializationState !== 0) {
       throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this)')
     }
     this._initializationState = 1
 
     // TODO: maybe _builderInterface.registerPluginInterface for better nomenclature
     this._builderInterface.registerPluginCallbacks({
-      build: this._doBuild.bind(this),
-      destroy: this._doDestroy.bind(this))
+      build: this._doBuild.bind(this)
+      // destroy: this._doDestroy.bind(this)
     })
 
     this.didInit()
@@ -110,7 +111,7 @@ Plugin.prototype._checkWithinDidInit = function() {
 // Compatibility code so plugins can run on old, .read-based Broccoli:
 
 Plugin.prototype.read = function(readTree) {
-  if (!this.hasOwnProperty('_initializationState') {
+  if (!this.hasOwnProperty('_initializationState')) {
     throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this)')
   }
   if (this._initializationState === 0) {
@@ -152,7 +153,7 @@ ReadCompatBuilderInterface.prototype.registerInputTree = function(tree) {
   // each rebuild. But the new API requires that we return a fixed input path
   // now. Therefore, we make up a fixed input path now, and we'll symlink
   // inputTree's actual output path to our fixed input path on each .read()
-  return path.join(this.inputDirs, i)
+  return path.join(this.inputDirs, i + '')
 }
 
 ReadCompatBuilderInterface.prototype.read = function(readTree) {
@@ -165,7 +166,7 @@ ReadCompatBuilderInterface.prototype.read = function(readTree) {
     .then(function(outputPaths) {
       // Symlink the inputTrees' outputPaths to our (fixed) input paths
       for (var i = 0; i < outputPaths.length; i++) {
-        var fixedInputPath = path.join(self.inputsPath, i)
+        var fixedInputPath = path.join(self.inputDirs, i + '')
         if (fs.existsSync(fixedInputPath)) {
           rimraf.sync(fixedInputPath)
         }
@@ -175,7 +176,7 @@ ReadCompatBuilderInterface.prototype.read = function(readTree) {
       return self.callbacks.build()
     })
     .then(function() {
-      return self.outputPath
+      return self.outputDir
     })
 }
 

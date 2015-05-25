@@ -13,5 +13,13 @@
     "broccoli-plugin"
   ],
   "dependencies": {
+    "promise-map-series": "^0.2.1",
+    "quick-temp": "^0.1.2",
+    "rimraf": "^2.3.4",
+    "rsvp": "^3.0.18",
+    "symlink-or-copy": "^1.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.5"
   }
 }

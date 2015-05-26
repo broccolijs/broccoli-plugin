@@ -1,9 +1,11 @@
 var fs = require('fs')
 var path = require('path')
-var assert = require('assert')
 var fixturify = require('fixturify')
 var fixtureTree = require('broccoli-fixturify')
 var Plugin = require('../index')
+var chai = require('chai'), expect = chai.expect
+var chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
 
 var broccoli_0_16_3 = require('./dependencies/broccoli-0.16.3')
 
@@ -65,7 +67,7 @@ describe('integration test', function(){
       var builder = new broccoli_0_16_3.Builder(tree)
       return builder.build()
         .then(function(hash) {
-          assert.deepEqual(fixturify.readSync(hash.directory), {
+          expect(fixturify.readSync(hash.directory)).to.deep.equal({
             'foo.txt': 'foo contents - from input tree #0',
             'bar.txt': 'bar contents - from input tree #1'
           })
@@ -86,9 +88,45 @@ describe('integration test', function(){
           return builder.build()
         })
         .then(function() {
-          assert.equal(didInitCalls, 1)
+          expect(didInitCalls).to.equal(1)
           return builder.cleanup()
         })
     })
   })
+})
+
+
+describe('usage errors', function() {
+  // TODO: .__broccoliRegister__() is not correct usage; create helper to do it properly
+
+  it('requires the base constructor to be called (super)', function() {
+    TestPlugin.prototype = Object.create(Plugin.prototype)
+    TestPlugin.prototype.constructor = TestPlugin
+    function TestPlugin() {
+      // missing Plugin.call(this)
+    }
+
+    TestPlugin.prototype.didInit = function() {}
+    TestPlugin.prototype.build = function() {}
+
+    expect(function() {
+      (new TestPlugin).__broccoliRegister__()
+    }).to.throw(/must call the superclass constructor/)
+  })
+
+  it('does not allow for overriding read, cleanup, and rebuild', function() {
+    var badPlugins = [
+      makePlugin({ read: function() {} })
+    , makePlugin({ rebuild: function() {} })
+    , makePlugin({ cleanup: function() {} })
+    ]
+    for (var i = 0; i < badPlugins.length; i++) {
+      expect(function() {
+        (new badPlugins[i]).__broccoliRegister__()
+      }).to.throw(/For compatibility, plugins must not define/)
+    }
+  })
+
+  // it('checks that the argument to registerInputTrees is an array')
+  // unimplemented: it('checks that argument to registerInputTree is a tree')
 })

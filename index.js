@@ -11,6 +11,7 @@ module.exports = Plugin
 function Plugin() {
   this._instantiationStack = (new Error()).stack
   this._initializationState = 0
+  this._constructorArguments = arguments
 
   if (typeof this.rebuild === 'function') {
     throw new Error('For compatibility, plugins must not define a plugin.rebuild() function')
@@ -44,7 +45,7 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterfa
       // destroy: this._doDestroy.bind(this)
     })
 
-    this.didInit()
+    this.didInit.apply(this, this._constructorArguments)
     this._initializationState = 2
   } catch (err) {
     err.broccoliInstantiationStack = this._instantiationStack

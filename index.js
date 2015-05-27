@@ -42,7 +42,6 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterfa
     // TODO: maybe _builderInterface.registerPluginInterface for better nomenclature
     this._builderInterface.registerPluginCallbacks({
       build: this._doBuild.bind(this)
-      // destroy: this._doDestroy.bind(this)
     })
 
     this.didInit.apply(this, this._constructorArguments)
@@ -92,14 +91,6 @@ Plugin.prototype._doBuild = function() {
       err.broccoliInstantiationStack = self._instantiationStack
       throw err
     })
-}
-
-// TODO: eliminate? https://github.com/broccolijs/broccoli/issues/263
-// TODO: if not: add _hasDestroy?
-Plugin.prototype._destroy = function() {
-  if (typeof this._plugin.destroy === 'function') {
-    return this._plugin.destroy()
-  }
 }
 
 Plugin.prototype._checkWithinDidInit = function() {

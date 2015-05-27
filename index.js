@@ -28,7 +28,6 @@ function Plugin() {
 Plugin.prototype.__broccoliPluginFeatures__ = {}
 
 // The Broccoli builder calls plugin.__broccoliRegister__
-// TODO: move features into interface?
 Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterface) {
   try {
     this._builderFeatures = builderFeatures // corresponding feature flags in builder
@@ -39,8 +38,7 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterfa
     }
     this._initializationState = 1
 
-    // TODO: maybe _builderInterface.registerPluginInterface for better nomenclature
-    this._builderInterface.registerPluginCallbacks({
+    this._builderInterface.registerPluginInterface({
       build: this._doBuild.bind(this)
     })
 
@@ -134,8 +132,8 @@ ReadCompatBuilderInterface.prototype.getCachePath = function() {
   return quickTemp.makeOrReuse(this, 'cacheDir')
 }
 
-ReadCompatBuilderInterface.prototype.registerPluginCallbacks = function(callbacks) {
-  this.callbacks = callbacks
+ReadCompatBuilderInterface.prototype.registerPluginInterface = function(pluginInterface) {
+  this.pluginInterface = pluginInterface
 }
 
 ReadCompatBuilderInterface.prototype.registerInputTree = function(tree) {
@@ -165,7 +163,7 @@ ReadCompatBuilderInterface.prototype.read = function(readTree) {
         symlinkOrCopySync(outputPaths[i], fixedInputPath)
       }
 
-      return self.callbacks.build()
+      return self.pluginInterface.build()
     })
     .then(function() {
       return self.outputDir

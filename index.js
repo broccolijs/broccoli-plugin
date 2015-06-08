@@ -13,6 +13,7 @@ function Plugin() {
   this._initializationState = 0
   this._constructorArguments = arguments
 
+  // TODO: if (!(this instanceof Plugin)) throw new Error('must use new')
   if (typeof this.rebuild === 'function') {
     throw new Error('For compatibility, plugins must not define a plugin.rebuild() function')
   }
@@ -23,6 +24,8 @@ function Plugin() {
     throw new Error('For compatibility, plugins must not define a plugin.cleanup() function')
   }
 }
+
+// TODO: Move to class? https://github.com/broccolijs/broccoli-plugin/commit/3cdf65fa86b0f578873456fd3c987722cc9c99cb#commitcomment-11567615
 
 // For future extensibility, we version the API using feature flags
 Plugin.prototype.__broccoliPluginFeatures__ = {}
@@ -129,6 +132,7 @@ ReadCompatBuilderInterface.prototype.getOutputPath = function() {
 }
 
 ReadCompatBuilderInterface.prototype.getCachePath = function() {
+  // TODO: https://github.com/broccolijs/broccoli-plugin/commit/3cdf65fa86b0f578873456fd3c987722cc9c99cb#commitcomment-11567960
   return quickTemp.makeOrReuse(this, 'cacheDir')
 }
 
@@ -157,9 +161,7 @@ ReadCompatBuilderInterface.prototype.read = function(readTree) {
       // Symlink the inputTrees' outputPaths to our (fixed) input paths
       for (var i = 0; i < outputPaths.length; i++) {
         var fixedInputPath = path.join(self.inputDirs, i + '')
-        if (fs.existsSync(fixedInputPath)) {
-          rimraf.sync(fixedInputPath)
-        }
+        rimraf.sync(fixedInputPath) // this is no-op if path does not exist
         symlinkOrCopySync(outputPaths[i], fixedInputPath)
       }
 
@@ -179,4 +181,5 @@ ReadCompatBuilderInterface.prototype.cleanup = function() {
 
 // TODO: tmp dir naming https://github.com/broccolijs/broccoli/issues/262
 // TODO: setDescription
+// TODO: toString?
 // TODO: Rename broccoli-plugin?

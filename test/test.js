@@ -1,13 +1,14 @@
 var fs = require('fs')
 var path = require('path')
+var RSVP = require('rsvp')
 var fixturify = require('fixturify')
-var fixtureTree = require('broccoli-fixturify')
+var fixtureNode = require('broccoli-fixturify')
 var Plugin = require('../index')
 var chai = require('chai'), expect = chai.expect
 var chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 
-var broccoli_0_16_3 = require('./dependencies/broccoli-0.16.3')
+var Builder_0_16_3 = require('./dependencies/broccoli-0.16.3').Builder
 
 
 function makePlugin(props) {
@@ -17,9 +18,7 @@ function makePlugin(props) {
     Plugin.apply(this, arguments)
   }
 
-  // Empty defaults:
-  TestPlugin.prototype.didInit = function() {}
-  TestPlugin.prototype.build = function() {}
+  TestPlugin.prototype.build = function() {} // empty default
 
   for (key in props) {
     TestPlugin.prototype[key] = props[key]
@@ -29,18 +28,12 @@ function makePlugin(props) {
 }
 
 var AnnotatingPlugin = makePlugin({
-  didInit: function(inputTrees) {
-    this.inputPaths = this.registerInputTrees(inputTrees)
-    this.outputPath = this.getOutputPath()
-    this.cachePath = this.getCachePath()
-  },
-
   build: function() {
     for (var i = 0; i < this.inputPaths.length; i++) {
       var files = fs.readdirSync(this.inputPaths[i])
       for (var j = 0; j < files.length; j++) {
         var content = fs.readFileSync(path.join(this.inputPaths[i], files[j]))
-        content += ' - from input tree #' + i
+        content += ' - from input node #' + i
         fs.writeFileSync(path.join(this.outputPath, files[j]), content)
       }
     }
@@ -53,43 +46,34 @@ var FailingPlugin = makePlugin({
   }
 })
 
+var build = function(builder) {
+  return RSVP.Promise.resolve()
+    .then(function() {
+      return builder.build()
+    })
+    .then(function(hash) {
+      return fixturify.readSync(hash.directory)
+    })
+    .finally(function() {
+      return builder.cleanup()
+    })
+}
+
+
 describe('integration test', function(){
-  var tree1, tree2
+  var node1, node2
 
   beforeEach(function() {
-    tree1 = fixtureTree({ 'foo.txt': 'foo contents' })
-    tree2 = fixtureTree({ 'bar.txt': 'bar contents' })
+    node1 = fixtureNode({ 'foo.txt': 'foo contents' })
+    node2 = fixtureNode({ 'bar.txt': 'bar contents' })
   })
 
   describe('Broccoli with .read API', function(){
     it('works without errors', function(){
-      var tree = new AnnotatingPlugin([tree1, tree2])
-      var builder = new broccoli_0_16_3.Builder(tree)
-      return builder.build()
-        .then(function(hash) {
-          expect(fixturify.readSync(hash.directory)).to.deep.equal({
-            'foo.txt': 'foo contents - from input tree #0',
-            'bar.txt': 'bar contents - from input tree #1'
-          })
-          return builder.cleanup()
-        })
-    })
-
-    it('calls didInit once', function() {
-      var didInitCalls = 0
-      var Plugin = makePlugin({
-        didInit: function() {
-          didInitCalls++
-        }
-      })
-      var builder = new broccoli_0_16_3.Builder(new Plugin)
-      return builder.build()
-        .then(function() {
-          return builder.build()
-        })
-        .then(function() {
-          expect(didInitCalls).to.equal(1)
-          return builder.cleanup()
+      return expect(build(new Builder_0_16_3(new AnnotatingPlugin([node1, node2]))))
+        .to.eventually.deep.equal({
+          'foo.txt': 'foo contents - from input node #0',
+          'bar.txt': 'bar contents - from input node #1'
         })
     })
   })
@@ -97,36 +81,35 @@ describe('integration test', function(){
 
 
 describe('usage errors', function() {
-  // TODO: .__broccoliRegister__() is not correct usage; create helper to do it properly
-
   it('requires the base constructor to be called (super)', function() {
     TestPlugin.prototype = Object.create(Plugin.prototype)
     TestPlugin.prototype.constructor = TestPlugin
-    function TestPlugin() {
-      // missing Plugin.call(this)
-    }
-
-    TestPlugin.prototype.didInit = function() {}
+    function TestPlugin() { /* no Plugin.apply(this, arguments) here */ }
     TestPlugin.prototype.build = function() {}
 
-    expect(function() {
-      (new TestPlugin).__broccoliRegister__()
-    }).to.throw(/must call the superclass constructor/)
+    return expect(build(new Builder_0_16_3(new TestPlugin)))
+      .to.be.rejectedWith(Error, /must call the superclass constructor/)
   })
 
-  it('does not allow for overriding read, cleanup, and rebuild', function() {
+  it('disallows overriding read, cleanup, and rebuild', function() {
     var badPlugins = [
       makePlugin({ read: function() {} })
     , makePlugin({ rebuild: function() {} })
     , makePlugin({ cleanup: function() {} })
     ]
     for (var i = 0; i < badPlugins.length; i++) {
-      expect(function() {
-        (new badPlugins[i]).__broccoliRegister__()
-      }).to.throw(/For compatibility, plugins must not define/)
+      expect(function() { new badPlugins[i]([]) })
+        .to.throw(/For compatibility, plugins must not define/)
     }
   })
 
-  // it('checks that the argument to registerInputTrees is an array')
-  // unimplemented: it('checks that argument to registerInputTree is a tree')
+  it('checks that the inputNodes argument is an array', function() {
+    expect(function() { new AnnotatingPlugin('notAnArray') })
+      .to.throw(/Expected an array/)
+  })
+
+  it('provides a helpful error message on missing `new`', function() {
+    expect(function() { AnnotatingPlugin([]) })
+      .to.throw(/Missing `new`/)
+  })
 })

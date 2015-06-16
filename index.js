@@ -1,19 +1,16 @@
-var quickTemp = require('quick-temp')
-var mapSeries = require('promise-map-series')
-var rimraf = require('rimraf')
-var symlinkOrCopySync = require('symlink-or-copy').sync
-var RSVP = require('rsvp')
-var fs = require('fs')
-var path = require('path')
-
-
 module.exports = Plugin
-function Plugin() {
-  this._instantiationStack = (new Error()).stack
-  this._initializationState = 0
-  this._constructorArguments = arguments
+function Plugin(inputNodes) {
+  if (!(this instanceof Plugin)) throw new Error('Missing `new` operator')
+  if (!Array.isArray(inputNodes)) throw new Error('Expected an array of input nodes (input trees), got ' + inputNodes)
 
-  // TODO: if (!(this instanceof Plugin)) throw new Error('must use new')
+  this._instantiationStack = (new Error()).stack
+  this._baseConstructorCalled = true
+  this._inputNodes = inputNodes
+
+  this._checkOverrides()
+}
+
+Plugin.prototype._checkOverrides = function() {
   if (typeof this.rebuild === 'function') {
     throw new Error('For compatibility, plugins must not define a plugin.rebuild() function')
   }
@@ -25,161 +22,84 @@ function Plugin() {
   }
 }
 
-// TODO: Move to class? https://github.com/broccolijs/broccoli-plugin/commit/3cdf65fa86b0f578873456fd3c987722cc9c99cb#commitcomment-11567615
-
 // For future extensibility, we version the API using feature flags
-Plugin.prototype.__broccoliPluginFeatures__ = {}
+Plugin.prototype.__broccoliNodeFeatures__ = Object.freeze({})
 
 // The Broccoli builder calls plugin.__broccoliRegister__
-Plugin.prototype.__broccoliRegister__ = function(builderFeatures, builderInterface) {
-  try {
-    this._builderFeatures = builderFeatures // corresponding feature flags in builder
-    this._builderInterface = builderInterface
+Plugin.prototype.__broccoliRegister__ = function(builderFeatures) {
+  if (!this._baseConstructorCalled) {
+    throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
+  }
 
-    if (this._initializationState !== 0) {
-      throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this)')
-    }
-    this._initializationState = 1
+  this._builderFeatures = builderFeatures // corresponding feature flags in builder
 
-    this._builderInterface.registerPluginInterface({
-      build: this._doBuild.bind(this)
-    })
-
-    this.didInit.apply(this, this._constructorArguments)
-    this._initializationState = 2
-  } catch (err) {
-    err.broccoliInstantiationStack = this._instantiationStack
-    throw err
+  return {
+    inputNodes: this._inputNodes,
+    postInit: this._postInit.bind(this),
+    build: this._doBuild.bind(this),
+    instantiationStack: this._instantiationStack
   }
 }
 
-Plugin.prototype.registerInputTrees = function(trees) {
-  this._checkWithinDidInit()
-  if (!Array.isArray(trees)) throw new Error('Expected an array of input trees, got ' + trees + '; did you mean this.registerInputTree(tree)?')
-  var paths = []
-  for (var i = 0; i < trees.length; i++) {
-    paths.push(this.registerInputTree(trees[i]))
+Plugin.prototype._postInit = function(options) {
+  this._postInitCalled = true
+  this._cachePath = options.cachePath
+  this._inputPaths = options.inputPaths
+  this._outputPath = options.outputPath
+}
+
+Object.defineProperty(Plugin.prototype, 'cachePath', {
+  get: function() {
+    if (!this._postInitCalled) throw new Error('this.cachePath must not be accessed before build()')
+    return this._cachePath
   }
-  return paths
-}
+})
 
-Plugin.prototype.registerInputTree = function(tree) {
-  return this._builderInterface.registerInputTree(tree)
-}
+Object.defineProperty(Plugin.prototype, 'inputPaths', {
+  get: function() {
+    if (!this._postInitCalled) throw new Error('this.inputPaths must not be accessed before build()')
+    return this._inputPaths
+  }
+})
 
-Plugin.prototype.getOutputPath = function() {
-  this._checkWithinDidInit() // TODO: relax to allow calling from .build?
-  return this._builderInterface.getOutputPath()
-}
-
-Plugin.prototype.getCachePath = function() {
-  this._checkWithinDidInit() // TODO: relax to allow calling from .build?
-  return this._builderInterface.getCachePath()
-}
+Object.defineProperty(Plugin.prototype, 'outputPath', {
+  get: function() {
+    if (!this._postInitCalled) throw new Error('this.outputPath must not be accessed before build()')
+    return this._outputPath
+  }
+})
 
 // Indirection (_doBuild -> build) allows subclasses like
 // broccoli-caching-writer to hook into calls from the builder
 Plugin.prototype._doBuild = function() {
-  var self = this
-
-  if (typeof this.build !== 'function') {
-    throw new Error('Plugin subclasses must implement a .build() function')
-  }
-
-  return RSVP.resolve()
-    .then(this.build.bind(this))
-    .catch(function(err) {
-      err.broccoliInstantiationStack = self._instantiationStack
-      throw err
-    })
+  return this.build()
 }
 
-Plugin.prototype._checkWithinDidInit = function() {
-  if (this._initializationState !== 1) {
-    throw new Error('This function can only be called from within .didInit()')
-  }
+Plugin.prototype.build = function() {
+  throw new Error('Plugin subclasses must implement a .build() function')
 }
 
 
 // Compatibility code so plugins can run on old, .read-based Broccoli:
 
 Plugin.prototype.read = function(readTree) {
-  if (!this.hasOwnProperty('_initializationState')) {
-    throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this)')
+  var self = this
+
+  if (!this._readCompat) {
+    var ReadCompat = require('./read_compat')
+    this._readCompat = new ReadCompat(this)
+    // TODO catch errors
   }
-  if (this._initializationState === 0) {
-    this._readCompatBuilderInterface = new ReadCompatBuilderInterface(this)
-    this.__broccoliRegister__({}, this._readCompatBuilderInterface)
-  }
-  return this._readCompatBuilderInterface.read(readTree)
+
+  return this._readCompat.read(readTree)
 }
 
 Plugin.prototype.cleanup = function() {
-  this._readCompatBuilderInterface.cleanup()
+  if (this._readCompat) this._readCompat.cleanup()
 }
 
-// Old, .read-based Broccoli doesn't give us a builder interface, so we make
-// our own, using quickTemp to create directories
-function ReadCompatBuilderInterface(plugin) {
-  this.plugin = plugin
-  this.inputTrees = []
-  quickTemp.makeOrReuse(this, 'outputDir')
-  quickTemp.makeOrReuse(this, 'inputDirs')
-}
-
-ReadCompatBuilderInterface.prototype.getOutputPath = function() {
-  return this.outputDir
-}
-
-ReadCompatBuilderInterface.prototype.getCachePath = function() {
-  // TODO: https://github.com/broccolijs/broccoli-plugin/commit/3cdf65fa86b0f578873456fd3c987722cc9c99cb#commitcomment-11567960
-  return quickTemp.makeOrReuse(this, 'cacheDir')
-}
-
-ReadCompatBuilderInterface.prototype.registerPluginInterface = function(pluginInterface) {
-  this.pluginInterface = pluginInterface
-}
-
-ReadCompatBuilderInterface.prototype.registerInputTree = function(tree) {
-  var i = this.inputTrees.length
-  this.inputTrees.push(tree)
-  // In old .read-based Broccoli, the inputTree's output path can change on
-  // each rebuild. But the new API requires that we return a fixed input path
-  // now. Therefore, we make up a fixed input path now, and we'll symlink
-  // inputTree's actual output path to our fixed input path on each .read()
-  return path.join(this.inputDirs, i + '')
-}
-
-ReadCompatBuilderInterface.prototype.read = function(readTree) {
-  var self = this
-
-  rimraf.sync(this.outputDir)
-  fs.mkdirSync(this.outputDir)
-
-  return mapSeries(this.inputTrees, readTree)
-    .then(function(outputPaths) {
-      // Symlink the inputTrees' outputPaths to our (fixed) input paths
-      for (var i = 0; i < outputPaths.length; i++) {
-        var fixedInputPath = path.join(self.inputDirs, i + '')
-        rimraf.sync(fixedInputPath) // this is no-op if path does not exist
-        symlinkOrCopySync(outputPaths[i], fixedInputPath)
-      }
-
-      return self.pluginInterface.build()
-    })
-    .then(function() {
-      return self.outputDir
-    })
-}
-
-ReadCompatBuilderInterface.prototype.cleanup = function() {
-  quickTemp.remove(this, 'outputDir')
-  quickTemp.remove(this, 'inputDirs')
-  quickTemp.remove(this, 'cacheDir')
-}
 
 
 // TODO: tmp dir naming https://github.com/broccolijs/broccoli/issues/262
-// TODO: setDescription
-// TODO: toString?
-// TODO: Rename broccoli-plugin?
+// TODO: description
+// TODO: toString

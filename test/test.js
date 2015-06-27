@@ -76,6 +76,22 @@ describe('integration test', function(){
           'bar.txt': 'bar contents - from input node #1'
         })
     })
+
+    it('handles readCompat initialization errors', function() {
+      var node = new AnnotatingPlugin([])
+      var initializeReadCompatCalls = 0
+      node._initializeReadCompat = function() { // stub
+        throw new Error('someError ' + (++initializeReadCompatCalls))
+      }
+      var builder = new Builder_0_16_3(node)
+      return RSVP.Promise.resolve()
+        .then(function() {
+          return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1')
+        })
+        .then(function() {
+          return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1')
+        })
+    })
   })
 })
 

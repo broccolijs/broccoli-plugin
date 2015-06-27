@@ -23,7 +23,7 @@ Plugin.prototype._checkOverrides = function() {
 }
 
 // For future extensibility, we version the API using feature flags
-Plugin.prototype.__broccoliNodeFeatures__ = Object.freeze({})
+Plugin.prototype.__broccoliFeatures__ = Object.freeze({})
 
 // The Broccoli builder calls plugin.__broccoliRegister__
 Plugin.prototype.__broccoliRegister__ = function(builderFeatures) {
@@ -31,48 +31,27 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures) {
     throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
   }
 
-  this._builderFeatures = builderFeatures // corresponding feature flags in builder
+  // Feature flags in builder, corresponding to __broccoliFeatures__
+  this._builderFeatures = builderFeatures
 
   return {
     inputNodes: this._inputNodes,
     postInit: this._postInit.bind(this),
-    build: this._doBuild.bind(this),
+    build: this.getBuildCallback(),
     instantiationStack: this._instantiationStack
   }
 }
 
 Plugin.prototype._postInit = function(options) {
-  this._postInitCalled = true
-  this._cachePath = options.cachePath
-  this._inputPaths = options.inputPaths
-  this._outputPath = options.outputPath
+  this.inputPaths = options.inputPaths
+  this.outputPath = options.outputPath
+  this.cachePath = options.cachePath
 }
 
-Object.defineProperty(Plugin.prototype, 'cachePath', {
-  get: function() {
-    if (!this._postInitCalled) throw new Error('this.cachePath must not be accessed before build()')
-    return this._cachePath
-  }
-})
-
-Object.defineProperty(Plugin.prototype, 'inputPaths', {
-  get: function() {
-    if (!this._postInitCalled) throw new Error('this.inputPaths must not be accessed before build()')
-    return this._inputPaths
-  }
-})
-
-Object.defineProperty(Plugin.prototype, 'outputPath', {
-  get: function() {
-    if (!this._postInitCalled) throw new Error('this.outputPath must not be accessed before build()')
-    return this._outputPath
-  }
-})
-
-// Indirection (_doBuild -> build) allows subclasses like
+// Indirection (getBuildCallback -> build) allows subclasses like
 // broccoli-caching-writer to hook into calls from the builder
-Plugin.prototype._doBuild = function() {
-  return this.build()
+Plugin.prototype.getBuildCallback = function() {
+  return this.build.bind(this)
 }
 
 Plugin.prototype.build = function() {
@@ -85,17 +64,29 @@ Plugin.prototype.build = function() {
 Plugin.prototype.read = function(readTree) {
   var self = this
 
-  if (!this._readCompat) {
-    var ReadCompat = require('./read_compat')
-    this._readCompat = new ReadCompat(this)
-    // TODO catch errors
+  if (this._readCompat == null) {
+    try {
+      this._initializeReadCompat() // call this.__broccoliRegister__()
+    } catch (err) {
+      // Prevent trying to initialize again on next .read
+      this._readCompat = false
+      // Remember error so we can throw it on all subsequent .read calls
+      this._readCompatError = err
+    }
   }
+
+  if (this._readCompatError != null) throw this._readCompatError
 
   return this._readCompat.read(readTree)
 }
 
 Plugin.prototype.cleanup = function() {
-  if (this._readCompat) this._readCompat.cleanup()
+  if (this._readCompat) return this._readCompat.cleanup()
+}
+
+Plugin.prototype._initializeReadCompat = function() {
+  var ReadCompat = require('./read_compat')
+  this._readCompat = new ReadCompat(this)
 }
 
 
@@ -103,3 +94,11 @@ Plugin.prototype.cleanup = function() {
 // TODO: tmp dir naming https://github.com/broccolijs/broccoli/issues/262
 // TODO: description
 // TODO: toString
+// TODO: one error with several references, or, multiple errors at once
+
+// Allow for adding the following features in the future:
+//
+// logging
+// persistent caches
+// in-memory tree representations (and/or filesChanged structure)
+// nested nodes

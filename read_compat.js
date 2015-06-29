@@ -23,11 +23,13 @@ function ReadCompat(plugin) {
     this.inputPaths.push(path.join(this.inputBasePath, i + ''))
   }
 
-  this.pluginInterface.postInit({
+  this.pluginInterface.setup({
     inputPaths: this.inputPaths,
     outputPath: this.outputPath,
     cachePath: this.cachePath
   })
+
+  this.callbackObject = this.pluginInterface.getCallbackObject()
 }
 
 ReadCompat.prototype.read = function(readTree) {
@@ -47,7 +49,7 @@ ReadCompat.prototype.read = function(readTree) {
         symlinkOrCopySync(outputPaths[i], self.inputPaths[i])
       }
 
-      return self.pluginInterface.build()
+      return self.callbackObject.build()
     })
     .then(function() {
       return self.outputPath

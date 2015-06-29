@@ -36,22 +36,24 @@ Plugin.prototype.__broccoliRegister__ = function(builderFeatures) {
 
   return {
     inputNodes: this._inputNodes,
-    postInit: this._postInit.bind(this),
-    build: this.getBuildCallback(),
+    setup: this._setup.bind(this),
+    getCallbackObject: this.getCallbackObject.bind(this), // .build, indirectly
     instantiationStack: this._instantiationStack
   }
 }
 
-Plugin.prototype._postInit = function(options) {
+Plugin.prototype._setup = function(options) {
   this.inputPaths = options.inputPaths
   this.outputPath = options.outputPath
   this.cachePath = options.cachePath
 }
 
-// Indirection (getBuildCallback -> build) allows subclasses like
-// broccoli-caching-writer to hook into calls from the builder
-Plugin.prototype.getBuildCallback = function() {
-  return this.build.bind(this)
+// Return obj on which the builder will call obj.build() repeatedly
+//
+// This indirection allows subclasses like broccoli-caching-writer to hook
+// into calls from the builder, by returning { build: someFunction }
+Plugin.prototype.getCallbackObject = function() {
+  return this
 }
 
 Plugin.prototype.build = function() {

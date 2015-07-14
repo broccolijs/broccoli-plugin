@@ -1,6 +1,5 @@
 var fs = require('fs')
 var path = require('path')
-var RSVP = require('rsvp')
 var quickTemp = require('quick-temp')
 var mapSeries = require('promise-map-series')
 var rimraf = require('rimraf')

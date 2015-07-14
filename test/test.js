@@ -21,7 +21,9 @@ function makePlugin(props) {
   TestPlugin.prototype.build = function() {} // empty default
 
   for (var key in props) {
-    TestPlugin.prototype[key] = props[key]
+    if (props.hasOwnProperty(key)) {
+      TestPlugin.prototype[key] = props[key]
+    }
   }
 
   return TestPlugin
@@ -37,12 +39,6 @@ var AnnotatingPlugin = makePlugin({
         fs.writeFileSync(path.join(this.outputPath, files[j]), content)
       }
     }
-  }
-})
-
-var FailingPlugin = makePlugin({
-  build: function() {
-    throw new Error('')
   }
 })
 
@@ -127,7 +123,7 @@ describe('usage errors', function() {
     , makePlugin({ cleanup: function() {} })
     ]
     for (var i = 0; i < badPlugins.length; i++) {
-      expect(function() { new badPlugins[i]([]) })
+      expect(function() { new badPlugins[i]([]) }) // jshint ignore:line
         .to.throw(/For compatibility, plugins must not define/)
     }
   })

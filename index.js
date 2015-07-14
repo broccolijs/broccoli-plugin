@@ -58,8 +58,8 @@ Plugin.prototype._setup = function(builderFeatures, options) {
 }
 
 Plugin.prototype.toString = function() {
-  return '[' + this._name +
-    (this._annotation != null ? ': ' + this._annotation : '')
+  return '[' + this._name
+    + (this._annotation != null ? ': ' + this._annotation : '')
     + ']'
 }
 
@@ -79,8 +79,6 @@ Plugin.prototype.build = function() {
 // Compatibility code so plugins can run on old, .read-based Broccoli:
 
 Plugin.prototype.read = function(readTree) {
-  var self = this
-
   if (this._readCompat == null) {
     try {
       this._initializeReadCompat() // call this.__broccoliGetInfo__()

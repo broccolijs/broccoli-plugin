@@ -97,6 +97,13 @@ describe('integration test', function(){
 })
 
 
+describe('unit tests', function() {
+  it('toString', function() {
+    expect(new NoopPlugin([]) + '').to.equal('[NoopPlugin]')
+    expect(new NoopPlugin([], { name: 'FooPlugin' }) + '').to.equal('[FooPlugin]')
+    expect(new NoopPlugin([], { annotation: 'some note' }) + '').to.equal('[NoopPlugin: some note]')
+  })
+
 describe('usage errors', function() {
   it('requires the base constructor to be called (super)', function() {
     TestPlugin.prototype = Object.create(Plugin.prototype)
@@ -133,4 +140,5 @@ describe('usage errors', function() {
     expect(function() { AnnotatingPlugin([]) })
       .to.throw(/Missing `new`/)
   })
+})
 })

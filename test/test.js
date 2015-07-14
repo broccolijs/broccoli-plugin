@@ -20,7 +20,7 @@ function makePlugin(props) {
 
   TestPlugin.prototype.build = function() {} // empty default
 
-  for (key in props) {
+  for (var key in props) {
     TestPlugin.prototype[key] = props[key]
   }
 
@@ -75,6 +75,19 @@ describe('integration test', function(){
           'foo.txt': 'foo contents - from input node #0',
           'bar.txt': 'bar contents - from input node #1'
         })
+    })
+
+    it('sets description', function() {
+      var node = new (makePlugin())([], {
+        name: 'SomePlugin',
+        annotation: 'some annotation'
+      })
+      var builder = new Builder_0_16_3(node)
+      return builder.build()
+        .then(function(hash) {
+          return expect(hash.graph.toJSON().description).to.equal('SomePlugin: some annotation')
+        })
+        .finally(function() { builder.cleanup() })
     })
 
     it('handles readCompat initialization errors', function() {

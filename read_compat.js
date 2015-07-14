@@ -11,25 +11,31 @@ var symlinkOrCopySync = require('symlink-or-copy').sync
 // directories
 module.exports = ReadCompat
 function ReadCompat(plugin) {
-  this.pluginInterface = plugin.__broccoliRegister__({})
+  this.pluginInterface = plugin.__broccoliGetInfo__({})
 
-  // TODO add className arg to quickTemp
-  quickTemp.makeOrReuse(this, 'outputPath')
-  quickTemp.makeOrReuse(this, 'cachePath')
-  quickTemp.makeOrReuse(this, 'inputBasePath')
+  quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name)
+  quickTemp.makeOrReuse(this, 'cachePath', this.pluginInterface.name)
+  quickTemp.makeOrReuse(this, 'inputBasePath', this.pluginInterface.name)
 
   this.inputPaths = []
   for (var i = 0; i < this.pluginInterface.inputNodes.length; i++) {
     this.inputPaths.push(path.join(this.inputBasePath, i + ''))
   }
 
-  this.pluginInterface.setup({
+  this.pluginInterface.setup({}, {
     inputPaths: this.inputPaths,
     outputPath: this.outputPath,
     cachePath: this.cachePath
   })
 
   this.callbackObject = this.pluginInterface.getCallbackObject()
+
+  if (plugin.description == null) {
+    plugin.description = this.pluginInterface.name
+    if (this.pluginInterface.annotation != null) {
+      plugin.description += ': ' + this.pluginInterface.annotation
+    }
+  }
 }
 
 ReadCompat.prototype.read = function(readTree) {

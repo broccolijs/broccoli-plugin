@@ -35,7 +35,7 @@ MyPlugin.prototype.build = function() {
 
 ### `Plugin(inputNodes, options)`
 
-Call this baseclass constructor from your subclass constructor.
+Call this base class constructor from your subclass constructor.
 
 * `inputNodes`: An array of node objects that this plugin will read from.
   Nodes are usually other plugin instances; they were formerly known as
@@ -66,13 +66,18 @@ This function will typically access the following read-only properties:
 
 All paths stay the same between builds.
 
+To perform asynchronous work, return a promise. The promise's eventual value
+is ignored (typically `null`).
+
+To report a compile error, `throw` it or return a rejected promise.
+
 ### `Plugin.prototype.getCallbackObject()`
 
 Advanced usage only.
 
 Return the object on which Broccoli will call `obj.build()`. Called once after
 instantiation. By default, returns `this`. Plugins do not usually need to
-override this, but it can be useful for baseclasses that other plugins in turn
+override this, but it can be useful for base classes that other plugins in turn
 derive from, such as
 [broccoli-caching-writer](https://github.com/ember-cli/broccoli-caching-writer).
 
@@ -81,3 +86,7 @@ For example, to intercept `.build()` calls, you might
 Or, to hand off the plugin implementation to a completely separate object:
 `return new MyPluginWorker(this.inputPaths, this.outputPath, this.cachePath)`,
 where `MyPluginWorker` provides a `.build` method.
+
+### Error objects
+
+[Document me.]

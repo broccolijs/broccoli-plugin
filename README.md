@@ -33,7 +33,7 @@ MyPlugin.prototype.build = function() {
 
 ## Reference
 
-### `Plugin(inputNodes, options)` constructor
+### `Plugin(inputNodes, options)`
 
 Call this baseclass constructor from your subclass constructor.
 
@@ -66,12 +66,14 @@ This function will typically access the following read-only properties:
 
 All paths stay the same between builds.
 
-### `Plugin.prototype.getCallbackObject()` (advanced usage)
+### `Plugin.prototype.getCallbackObject()`
+
+Advanced usage only.
 
 Return the object on which Broccoli will call `obj.build()`. Called once after
-instantiation. By default, returns `this`. This is not usually needed for
-plugins, but can be useful for baseclasses that other plugins in turn derive
-from, such as
+instantiation. By default, returns `this`. Plugins do not usually need to
+override this, but it can be useful for baseclasses that other plugins in turn
+derive from, such as
 [broccoli-caching-writer](https://github.com/ember-cli/broccoli-caching-writer).
 
 For example, to intercept `.build()` calls, you might

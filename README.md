@@ -2,4 +2,80 @@
 
 [![Build Status](https://travis-ci.org/broccolijs/broccoli-plugin.svg?branch=master)](https://travis-ci.org/broccolijs/broccoli-plugin)
 
-Work in progress.
+## Example Usage
+
+```js
+var Plugin = require('broccoli-plugin');
+var path = require('path');
+
+// Create a subclass MyPlugin derived from Plugin
+MyPlugin.prototype = Object.create(Plugin.prototype);
+MyPlugin.prototype.constructor = MyPlugin;
+function MyPlugin(inputNodes, options) {
+  options = options || {};
+  Plugin.call(this, inputNodes, {
+    annotation: options.annotation
+  });
+  this.options = options;
+}
+
+MyPlugin.prototype.build = function() {
+  // Read files from this.inputPaths, and write files to this.outputPath.
+  // Silly example:
+
+  // Read 'foo.txt' from the third input node
+  var inputBuffer = fs.readFileSync(path.join(this.inputPaths[2], 'foo.txt'));
+  var outputBuffer = someCompiler(inputBuffer);
+  // Write to 'bar.txt' in this node's output
+  fs.writeFileSync(path.join(this.outputPath, 'bar.txt'), outputBuffer);
+};
+```
+
+## Reference
+
+### `Plugin(inputNodes, options)` constructor
+
+Call this baseclass constructor from your subclass constructor.
+
+* `inputNodes`: An array of node objects that this plugin will read from.
+  Nodes are usually other plugin instances; they were formerly known as
+  "trees".
+
+* `options`
+
+    * `name`: The name of this plugin class. Defaults to `this.constructor.name`.
+    * `annotation`: A descriptive annotation. Useful for debugging, to tell
+      multiple instances of the same plugin apart.
+
+### `Plugin.prototype.build()`
+
+Override this method in your subclass. It will be called on each (re-)build.
+
+This function will typically access the following read-only properties:
+
+* `this.inputPaths`: An array of paths on disk corresponding to each node in
+  `inputNodes`. Your plugin will read files from these paths.
+
+* `this.outputPath`: The path on disk corresponding to this plugin instance
+  (this node). Your plugin will write files to this path. This directory is
+  emptied by Broccoli before each build.
+
+* `this.cachePath`: The path on disk to an auxiliary cache directory. Use this
+  to store files that you want preserved between builds. This directory will
+  only be deleted when Broccoli exits.
+
+All paths stay the same between builds.
+
+### `Plugin.prototype.getCallbackObject()` (advanced usage)
+
+Return the object on which Broccoli will call `obj.build()`. Called once after
+instantiation. By default, returns `this`. This is not usually needed for
+plugins, but can be useful for baseclasses that other plugins in turn derive
+from, such as
+[broccoli-caching-writer](https://github.com/ember-cli/broccoli-caching-writer).
+
+For example, to intercept `.build()` calls, you might
+`return { build: this.buildWrapper.bind(this) }`.
+Or, to hand off the plugin implementation to a completely separate object:
+`return new MyPluginWorker(this.inputPaths, this.outputPath, this.cachePath)`,
+where `MyPluginWorker` provides a `.build` method.

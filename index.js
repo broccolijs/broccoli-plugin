@@ -3,9 +3,11 @@ function Plugin(inputNodes, options) {
   if (!(this instanceof Plugin)) throw new Error('Missing `new` operator')
   if (!Array.isArray(inputNodes)) throw new Error('Expected an array of input nodes (input trees), got ' + inputNodes)
 
-  this._instantiationStack = (new Error()).stack
   this._baseConstructorCalled = true
   this._inputNodes = inputNodes
+
+  // Remember current call stack (minus "Error" line)
+  this._instantiationStack = (new Error).stack.replace(/[^\n]*\n/, '')
 
   options = options || {}
   if (options.name != null) {

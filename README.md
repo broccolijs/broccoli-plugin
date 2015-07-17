@@ -69,7 +69,8 @@ All paths stay the same between builds.
 To perform asynchronous work, return a promise. The promise's eventual value
 is ignored (typically `null`).
 
-To report a compile error, `throw` it or return a rejected promise.
+To report a compile error, `throw` it or return a rejected promise. Also see
+section "Error Objects" below.
 
 ### `Plugin.prototype.getCallbackObject()`
 
@@ -87,6 +88,15 @@ Or, to hand off the plugin implementation to a completely separate object:
 `return new MyPluginWorker(this.inputPaths, this.outputPath, this.cachePath)`,
 where `MyPluginWorker` provides a `.build` method.
 
-### Error objects
+### Error Objects
 
-[Document me.]
+To help with displaying clear error messages for build errors, error objects
+may have the following optional properties in addition to the standard
+`message` property:
+
+* `file`: Full path of the file in which the error occurred
+* `line`: Line in which the error occurred (one-indexed)
+* `column`: Column in which the error occurred (zero-indexed)
+
+<!-- The `treeDir` property has not been widely used and is not officially
+supported. -->

@@ -94,9 +94,9 @@ To help with displaying clear error messages for build errors, error objects
 may have the following optional properties in addition to the standard
 `message` property:
 
-* `file`: Full path of the file in which the error occurred
+* `file`: Path of the file in which the error occurred, relative to one of the
+  `inputPaths` directories
+* `treeDir`: The path that `file` is relative to. Must be an element of
+  `this.inputPaths`. (The name `treeDir` is for historical reasons.)
 * `line`: Line in which the error occurred (one-indexed)
 * `column`: Column in which the error occurred (zero-indexed)
-
-<!-- The `treeDir` property has not been widely used and is not officially
-supported. -->

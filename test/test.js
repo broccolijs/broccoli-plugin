@@ -93,6 +93,46 @@ describe('integration test', function(){
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1')
         })
     })
+
+    describe('persistent output', function() {
+      BuildOnce.prototype = Object.create(Plugin.prototype)
+      BuildOnce.prototype.constructor = BuildOnce
+      function BuildOnce(options) {
+        Plugin.call(this, [], options)
+      }
+
+      BuildOnce.prototype.build = function() {
+        if (!(this.builtOnce)) {
+          this.builtOnce = true
+          fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test')
+        }
+      }
+
+      function isPersistent(options) {
+        var builder = new Builder_0_16_3(new BuildOnce(options))
+        function buildAndCheckExistence() {
+          return builder.build()
+            .then(function(hash) {
+              return fs.existsSync(path.join(hash.directory, 'foo.txt'))
+            })
+        }
+        return expect(buildAndCheckExistence()).to.eventually.equal(true)
+          .then(buildAndCheckExistence)
+          .finally(function() { builder.cleanup() })
+      }
+
+      it('is not persistent by default', function() {
+        return expect(isPersistent({})).to.eventually.equal(false)
+      })
+
+      it('is not persistent when persistentOutput is false', function() {
+        return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false)
+      })
+
+      it('is persistent when persistentOutput is true', function() {
+        return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true)
+      })
+    })
   })
 })
 

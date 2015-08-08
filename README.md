@@ -46,6 +46,8 @@ Call this base class constructor from your subclass constructor.
     * `name`: The name of this plugin class. Defaults to `this.constructor.name`.
     * `annotation`: A descriptive annotation. Useful for debugging, to tell
       multiple instances of the same plugin apart.
+    * `persistentOutput`: If true, the output directory is not automatically
+      emptied between builds.
 
 ### `Plugin.prototype.build()`
 
@@ -58,7 +60,8 @@ This function will typically access the following read-only properties:
 
 * `this.outputPath`: The path on disk corresponding to this plugin instance
   (this node). Your plugin will write files to this path. This directory is
-  emptied by Broccoli before each build.
+  emptied by Broccoli before each build, unless the `persistentOutput` options
+  is true.
 
 * `this.cachePath`: The path on disk to an auxiliary cache directory. Use this
   to store files that you want preserved between builds. This directory will

@@ -10,7 +10,9 @@ var symlinkOrCopySync = require('symlink-or-copy').sync
 // directories
 module.exports = ReadCompat
 function ReadCompat(plugin) {
-  this.pluginInterface = plugin.__broccoliGetInfo__({})
+  var builderFeatures = { persistentOutputFlag: true }
+
+  this.pluginInterface = plugin.__broccoliGetInfo__(builderFeatures)
 
   quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name)
   quickTemp.makeOrReuse(this, 'cachePath', this.pluginInterface.name)
@@ -21,7 +23,7 @@ function ReadCompat(plugin) {
     this.inputPaths.push(path.join(this.inputBasePath, i + ''))
   }
 
-  this.pluginInterface.setup({}, {
+  this.pluginInterface.setup(builderFeatures, {
     inputPaths: this.inputPaths,
     outputPath: this.outputPath,
     cachePath: this.cachePath
@@ -40,8 +42,10 @@ function ReadCompat(plugin) {
 ReadCompat.prototype.read = function(readTree) {
   var self = this
 
-  rimraf.sync(this.outputPath)
-  fs.mkdirSync(this.outputPath)
+  if (!this.pluginInterface.persistentOutput) {
+    rimraf.sync(this.outputPath)
+    fs.mkdirSync(this.outputPath)
+  }
 
   return mapSeries(this.pluginInterface.inputNodes, readTree)
     .then(function(outputPaths) {

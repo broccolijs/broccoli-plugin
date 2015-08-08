@@ -33,7 +33,7 @@ MyPlugin.prototype.build = function() {
 
 ## Reference
 
-### `Plugin(inputNodes, options)`
+### `new Plugin(inputNodes, options)`
 
 Call this base class constructor from your subclass constructor.
 

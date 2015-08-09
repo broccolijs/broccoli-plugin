@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = Plugin
 function Plugin(inputNodes, options) {
   if (!(this instanceof Plugin)) throw new Error('Missing `new` operator')

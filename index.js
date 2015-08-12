@@ -1,5 +1,7 @@
 'use strict'
 
+var ReadCompat;
+
 module.exports = Plugin
 function Plugin(inputNodes, options) {
   if (!(this instanceof Plugin)) throw new Error('Missing `new` operator')
@@ -116,6 +118,14 @@ Plugin.prototype.cleanup = function() {
 }
 
 Plugin.prototype._initializeReadCompat = function() {
-  var ReadCompat = require('./read_compat')
+  if (ReadCompat === void 0) ReadCompat = require('./read_compat')
   this._readCompat = new ReadCompat(this)
+}
+
+// Static method which enables requiring normally optional modules at a
+// predictable time. May be necessary when using rewire to mock native
+// modules.
+Plugin.initialize = function() {
+  if (ReadCompat === void 0) ReadCompat = require('./read_compat')
+  return this
 }

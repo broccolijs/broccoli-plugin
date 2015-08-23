@@ -2,5 +2,6 @@
   "extends": "../.jshintrc",
   "camelcase": false,
   "loopfunc": true,
+  "expr": true,
   "mocha": true
 }

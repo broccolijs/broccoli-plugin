@@ -13,8 +13,8 @@
     "broccoli-plugin"
   ],
   "scripts": {
-    "pretest": "test/install_dependencies.sh",
-    "test": "./node_modules/.bin/mocha"
+    "pretest": "bash test/install_dependencies.sh",
+    "test": "mocha"
   },
   "dependencies": {
     "promise-map-series": "^0.2.1",

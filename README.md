@@ -1,6 +1,7 @@
 # The Broccoli Plugin Base Class
 
 [![Build Status](https://travis-ci.org/broccolijs/broccoli-plugin.svg?branch=master)](https://travis-ci.org/broccolijs/broccoli-plugin)
+[![Build status](https://ci.appveyor.com/api/projects/status/k4tk8b99m1e58ftd?svg=true)](https://ci.appveyor.com/project/joliss/broccoli-plugin)
 
 ## Example Usage
 

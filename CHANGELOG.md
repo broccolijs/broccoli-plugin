@@ -1,5 +1,7 @@
 # master
 
+# 1.2.0
+
 * Add `sourceDirectories` feature flag, which introduces `pluginInterface.nodeType`
 * Allow for calling `__broccoliGetInfo__()` without argument
 

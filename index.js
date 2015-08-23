@@ -39,15 +39,17 @@ Plugin.prototype._checkOverrides = function() {
 
 // For future extensibility, we version the API using feature flags
 Plugin.prototype.__broccoliFeatures__ = Object.freeze({
-  persistentOutputFlag: true
+  persistentOutputFlag: true,
+  sourceDirectories: true
 })
 
 // The Broccoli builder calls plugin.__broccoliGetInfo__
 Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
-  this._checkBuilderFeatures(builderFeatures)
+  builderFeatures = this._checkBuilderFeatures(builderFeatures)
   if (!this._baseConstructorCalled) throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
 
   return {
+    nodeType: 'transform',
     inputNodes: this._inputNodes,
     setup: this._setup.bind(this),
     getCallbackObject: this.getCallbackObject.bind(this), // .build, indirectly
@@ -59,14 +61,16 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
 }
 
 Plugin.prototype._checkBuilderFeatures = function(builderFeatures) {
-  if (!builderFeatures || !builderFeatures.persistentOutputFlag) {
+  if (builderFeatures == null) builderFeatures = this.__broccoliFeatures__
+  if (!builderFeatures.persistentOutputFlag || !builderFeatures.sourceDirectories) {
     // No builder in the wild implements less than these.
-    throw new Error('Minimum builderFeatures required: { persistentOutputFlag: true }')
+    throw new Error('Minimum builderFeatures required: { persistentOutputFlag: true, sourceDirectories: true }')
   }
+  return builderFeatures
 }
 
 Plugin.prototype._setup = function(builderFeatures, options) {
-  this._checkBuilderFeatures(builderFeatures)
+  builderFeatures = this._checkBuilderFeatures(builderFeatures)
   this._builderFeatures = builderFeatures
   this.inputPaths = options.inputPaths
   this.outputPath = options.outputPath

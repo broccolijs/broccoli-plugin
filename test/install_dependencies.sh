@@ -5,12 +5,14 @@
 set -e
 
 cd test
-rm -rf dependencies
-mkdir dependencies
+mkdir -p dependencies
 cd dependencies
 
 for broccoli_version in 0.16.3; do
   (
+    if test -d "broccoli-$broccoli_version"; then
+      exit # continue
+    fi
     mkdir "broccoli-$broccoli_version"
     cd "broccoli-$broccoli_version"
     mkdir node_modules

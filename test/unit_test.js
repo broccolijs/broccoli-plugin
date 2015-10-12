@@ -33,6 +33,33 @@ describe('unit tests', function() {
       }).to.throw(Error, /must call the superclass constructor/)
     })
 
+    it('validates inputTrees', function() {
+      TestPlugin.prototype = Object.create(Plugin.prototype)
+      TestPlugin.prototype.constructor = TestPlugin
+      function TestPlugin() { Plugin.apply(this, arguments) }
+      TestPlugin.prototype.build = function() {}
+
+      expect(function() {
+         new TestPlugin()
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got undefined')
+
+      expect(function() {
+         new TestPlugin({})
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got [object Object]')
+
+      expect(function() {
+         new TestPlugin({length: 1})
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got [object Object]')
+
+      expect(function() {
+        new TestPlugin([undefined])
+      }).to.throw(TypeError, /TestPlugin: requires inputNodes to be all nodes, but got: \[\]/)
+
+      expect(function() {
+        new TestPlugin([undefined, null, 1, true, false, undefined])
+      }).to.throw(TypeError, 'TestPlugin: requires inputNodes to be all nodes, but got: \[,,1,true,false,\]')
+    })
+
     it('disallows overriding read, cleanup, and rebuild', function() {
       var prohibitedNames = ['read', 'rebuild', 'cleanup']
       for (var i = 0; i < prohibitedNames.length; i++) {

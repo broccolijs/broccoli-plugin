@@ -15,7 +15,7 @@ NoopPlugin.prototype.build = function() {}
 
 
 describe('unit tests', function() {
-  it('toString', function() {
+  it('produces correct toString result', function() {
     expect(new NoopPlugin([]) + '').to.equal('[NoopPlugin]')
     expect(new NoopPlugin([], { name: 'FooPlugin' }) + '').to.equal('[FooPlugin]')
     expect(new NoopPlugin([], { annotation: 'some note' }) + '').to.equal('[NoopPlugin: some note]')

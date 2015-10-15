@@ -29,7 +29,7 @@
     "fixturify": "^0.1.1",
     "mocha": "^2.2.5",
     "mocha-jshint": "^2.2.3",
-    "multidep": "^1.0.0",
+    "multidep": "^1.0.1",
     "rsvp": "^3.0.18"
   }
 }

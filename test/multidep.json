@@ -1,0 +1,6 @@
+{
+  "path": "test/multidep",
+  "versions": {
+    "broccoli": ["0.16.8"]
+  }
+}

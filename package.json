@@ -13,7 +13,7 @@
     "broccoli-plugin"
   ],
   "scripts": {
-    "pretest": "bash test/install_dependencies.sh",
+    "pretest": "multidep test/multidep.json",
     "test": "mocha"
   },
   "dependencies": {
@@ -29,6 +29,7 @@
     "fixturify": "^0.1.1",
     "mocha": "^2.2.5",
     "mocha-jshint": "^2.2.3",
+    "multidep": "^1.0.0",
     "rsvp": "^3.0.18"
   }
 }

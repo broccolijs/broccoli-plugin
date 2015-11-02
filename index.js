@@ -16,16 +16,16 @@ function Plugin(inputNodes, options) {
   }
   this._annotation = options.annotation
 
-  var name = this._name + ':' + (this._annotation || '')
-
-  if (!Array.isArray(inputNodes)) throw new TypeError(name + ' Expected an array of input nodes (input trees), got ' + inputNodes)
-
- if (!containsPossibleInputTrees(inputNodes)) {
-    throw new TypeError(name + ' requires inputNodes to be all nodes, but got: [' + inputNodes + ']');
+  var label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '')
+  if (!Array.isArray(inputNodes)) throw new TypeError(label + ': Expected an array of input nodes (input trees), got ' + inputNodes)
+  for (var i = 0; i < inputNodes.length; i++) {
+    if (!isPossibleNode(inputNodes[i])) {
+      throw new TypeError(label + ': Expected Broccoli node, got ' + inputNodes[i] + ' for inputNodes[' + i + ']')
+    }
   }
+
   this._baseConstructorCalled = true
   this._inputNodes = inputNodes
-
   this._persistentOutput = !!options.persistentOutput
 
   this._checkOverrides()
@@ -130,10 +130,7 @@ Plugin.prototype._initializeReadCompat = function() {
   this._readCompat = new ReadCompat(this)
 }
 
-function containsPossibleInputTrees(inputNodes) {
-  return inputNodes.filter(function(inputNode) {
-    var type = typeof inputNode;
-    return type === 'string' ||
-      (inputNode !== null && type === 'object');
-  }).length === inputNodes.length;
+function isPossibleNode(node) {
+  return typeof node === 'string' ||
+    (node !== null && typeof node === 'object')
 }

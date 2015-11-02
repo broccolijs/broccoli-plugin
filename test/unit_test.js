@@ -33,7 +33,7 @@ describe('unit tests', function() {
       }).to.throw(Error, /must call the superclass constructor/)
     })
 
-    it('validates inputTrees', function() {
+    it('validates inputNodes', function() {
       TestPlugin.prototype = Object.create(Plugin.prototype)
       TestPlugin.prototype.constructor = TestPlugin
       function TestPlugin() { Plugin.apply(this, arguments) }
@@ -52,12 +52,21 @@ describe('unit tests', function() {
        }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got [object Object]')
 
       expect(function() {
-        new TestPlugin([undefined])
-      }).to.throw(TypeError, /TestPlugin: requires inputNodes to be all nodes, but got: \[\]/)
+        new TestPlugin([null])
+      }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got null for inputNodes[0]')
 
       expect(function() {
-        new TestPlugin([undefined, null, 1, true, false, undefined])
-      }).to.throw(TypeError, 'TestPlugin: requires inputNodes to be all nodes, but got: \[,,1,true,false,\]')
+        new TestPlugin([undefined])
+      }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got undefined for inputNodes[0]')
+
+      expect(function() {
+        new TestPlugin([true])
+      }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got true for inputNodes[0]')
+
+      // Expect not to throw
+      new TestPlugin([])
+      new TestPlugin(['some/path'])
+      new TestPlugin([new TestPlugin([])])
     })
 
     it('disallows overriding read, cleanup, and rebuild', function() {

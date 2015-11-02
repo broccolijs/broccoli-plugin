@@ -1,5 +1,7 @@
 # master
 
+# 1.2.1
+
 * Throw error immediately when inputNodes contains something other than input nodes
 
 # 1.2.0

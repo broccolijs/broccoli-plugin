@@ -1,5 +1,7 @@
 # master
 
+* Throw error immediately when inputNodes contains something other than input nodes
+
 # 1.2.0
 
 * Add `sourceDirectories` feature flag, which introduces `pluginInterface.nodeType`

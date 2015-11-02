@@ -2,12 +2,7 @@
 
 module.exports = Plugin
 function Plugin(inputNodes, options) {
-  if (!(this instanceof Plugin)) throw new Error('Missing `new` operator')
-  if (!Array.isArray(inputNodes)) throw new Error('Expected an array of input nodes (input trees), got ' + inputNodes)
-
-  this._baseConstructorCalled = true
-  this._inputNodes = inputNodes
-
+  if (!(this instanceof Plugin)) throw new TypeError('Missing `new` operator')
   // Remember current call stack (minus "Error" line)
   this._instantiationStack = (new Error).stack.replace(/[^\n]*\n/, '')
 
@@ -20,6 +15,17 @@ function Plugin(inputNodes, options) {
     this._name = 'Plugin'
   }
   this._annotation = options.annotation
+
+  var name = this._name + ':' + (this._annotation || '')
+
+  if (!Array.isArray(inputNodes)) throw new TypeError(name + ' Expected an array of input nodes (input trees), got ' + inputNodes)
+
+ if (!containsPossibleInputTrees(inputNodes)) {
+    throw new TypeError(name + ' requires inputNodes to be all nodes, but got: [' + inputNodes + ']');
+  }
+  this._baseConstructorCalled = true
+  this._inputNodes = inputNodes
+
   this._persistentOutput = !!options.persistentOutput
 
   this._checkOverrides()
@@ -122,4 +128,12 @@ Plugin.prototype.cleanup = function() {
 Plugin.prototype._initializeReadCompat = function() {
   var ReadCompat = require('./read_compat')
   this._readCompat = new ReadCompat(this)
+}
+
+function containsPossibleInputTrees(inputNodes) {
+  return inputNodes.filter(function(inputNode) {
+    var type = typeof inputNode;
+    return type === 'string' ||
+      (inputNode !== null && type === 'object');
+  }).length === inputNodes.length;
 }

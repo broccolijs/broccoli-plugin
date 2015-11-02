@@ -15,7 +15,7 @@ NoopPlugin.prototype.build = function() {}
 
 
 describe('unit tests', function() {
-  it('toString', function() {
+  it('produces correct toString result', function() {
     expect(new NoopPlugin([]) + '').to.equal('[NoopPlugin]')
     expect(new NoopPlugin([], { name: 'FooPlugin' }) + '').to.equal('[FooPlugin]')
     expect(new NoopPlugin([], { annotation: 'some note' }) + '').to.equal('[NoopPlugin: some note]')
@@ -31,6 +31,33 @@ describe('unit tests', function() {
       return expect(function() {
         (new TestPlugin).__broccoliGetInfo__()
       }).to.throw(Error, /must call the superclass constructor/)
+    })
+
+    it('validates inputTrees', function() {
+      TestPlugin.prototype = Object.create(Plugin.prototype)
+      TestPlugin.prototype.constructor = TestPlugin
+      function TestPlugin() { Plugin.apply(this, arguments) }
+      TestPlugin.prototype.build = function() {}
+
+      expect(function() {
+         new TestPlugin()
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got undefined')
+
+      expect(function() {
+         new TestPlugin({})
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got [object Object]')
+
+      expect(function() {
+         new TestPlugin({length: 1})
+       }).to.throw(TypeError, 'TestPlugin: Expected an array of input nodes \(input trees\), got [object Object]')
+
+      expect(function() {
+        new TestPlugin([undefined])
+      }).to.throw(TypeError, /TestPlugin: requires inputNodes to be all nodes, but got: \[\]/)
+
+      expect(function() {
+        new TestPlugin([undefined, null, 1, true, false, undefined])
+      }).to.throw(TypeError, 'TestPlugin: requires inputNodes to be all nodes, but got: \[,,1,true,false,\]')
     })
 
     it('disallows overriding read, cleanup, and rebuild', function() {

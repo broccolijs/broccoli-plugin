@@ -9,7 +9,7 @@ var Plugin = require('../index')
 var chai = require('chai'), expect = chai.expect
 var chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
-var multidepPackages = require('multidep')('test/multidep.json')
+var multidepRequire = require('multidep')('test/multidep.json')
 
 
 AnnotatingPlugin.prototype = Object.create(Plugin.prototype)
@@ -49,7 +49,7 @@ describe('integration test', function(){
   })
 
   describe('.read compatibility code', function() {
-    var Builder_0_16 = multidepPackages['broccoli']['0.16.8']().Builder
+    var Builder_0_16 = multidepRequire('broccoli', '0.16.8').Builder
 
     it('sets description', function() {
       var node = new AnnotatingPlugin([], {
@@ -80,7 +80,7 @@ describe('integration test', function(){
     })
   })
 
-  multidepPackages.broccoli.forEachVersion(function(broccoliVersion, module) {
+  multidepRequire.forEachVersion('broccoli', function(broccoliVersion, module) {
     var Builder = module.Builder
 
     // Call .build on the builder and return outputPath; works across Builder

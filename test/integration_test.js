@@ -49,7 +49,7 @@ describe('integration test', function(){
   })
 
   describe('.read compatibility code', function() {
-    var Builder_0_16 = multidepRequire('broccoli', '0.16.8').Builder
+    var Builder_0_16 = multidepRequire('broccoli', '0.16.9').Builder
 
     it('sets description', function() {
       var node = new AnnotatingPlugin([], {

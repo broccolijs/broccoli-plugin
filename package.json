@@ -13,7 +13,7 @@
     "broccoli-plugin"
   ],
   "scripts": {
-    "postinstall": "multidep test/multidep.json",
+    "pretest": "multidep test/multidep.json",
     "test": "mocha"
   },
   "dependencies": {

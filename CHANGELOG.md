@@ -1,5 +1,10 @@
 # master
 
+# 1.2.2
+
+* Whitelist JS files in package.json
+* re-release without tmp/
+
 # 1.2.1
 
 * Throw error immediately when inputNodes contains something other than input nodes

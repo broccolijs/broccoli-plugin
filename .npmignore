@@ -1,2 +1,6 @@
-/test
 .jshint*
+/.npmignore
+/.travis.yml
+/appveyor.yml
+/test
+/tmp

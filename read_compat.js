@@ -19,8 +19,13 @@ function ReadCompat(plugin) {
   quickTemp.makeOrReuse(this, 'inputBasePath', this.pluginInterface.name)
 
   this.inputPaths = []
-  for (var i = 0; i < this.pluginInterface.inputNodes.length; i++) {
-    this.inputPaths.push(path.join(this.inputBasePath, i + ''))
+
+  if (this.pluginInterface.inputNodes.length === 1) {
+    this.inputPaths.push(this.inputBasePath)
+  } else {
+    for (var i = 0; i < this.pluginInterface.inputNodes.length; i++) {
+      this.inputPaths.push(path.join(this.inputBasePath, i + ''))
+    }
   }
 
   this.pluginInterface.setup(null, {

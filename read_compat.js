@@ -8,7 +8,6 @@ var rimraf = require('rimraf')
 var symlinkOrCopy = require('symlink-or-copy')
 var symlinkOrCopySync = symlinkOrCopy.sync
 
-
 // Mimic how a Broccoli builder would call a plugin, using quickTemp to create
 // directories
 module.exports = ReadCompat
@@ -16,7 +15,13 @@ function ReadCompat(plugin) {
   this.pluginInterface = plugin.__broccoliGetInfo__()
 
   quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name)
-  quickTemp.makeOrReuse(this, 'cachePath', this.pluginInterface.name)
+
+  if (this.pluginInterface.createCacheDirectory) {
+    quickTemp.makeOrReuse(this, 'cachePath', this.pluginInterface.name)
+  } else {
+    this.cachePath = undefined
+  }
+
   quickTemp.makeOrReuse(this, 'inputBasePath', this.pluginInterface.name)
 
   this.inputPaths = []

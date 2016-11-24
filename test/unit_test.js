@@ -103,6 +103,8 @@ describe('unit tests', function() {
       expect(pluginInterface).to.have.property('persistentOutput', false)
       expect(pluginInterface).to.have.property('name', 'NoopPlugin')
       expect(pluginInterface).to.have.property('annotation', undefined)
+      expect(pluginInterface).to.have.property('createCacheDirectory', true)
+
       expect(typeof pluginInterface.setup).to.equal('function')
       expect(typeof pluginInterface.getCallbackObject).to.equal('function')
       expect(typeof pluginInterface.instantiationStack).to.equal('string')
@@ -115,6 +117,16 @@ describe('unit tests', function() {
         sourceDirectories: true
       }))
     })
+
+    it('sets createCacheDirectory if provided at instantiation`', function() {
+      var node = new NoopPlugin([], {
+        createCacheDirectory: false
+      })
+
+      var pluginInterface = node.__broccoliGetInfo__()
+      expect(pluginInterface).to.have.property('createCacheDirectory', false)
+    })
+
 
     it('returns a plugin interface when no feature flags are given', function() {
       var node = new NoopPlugin([])

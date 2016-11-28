@@ -11,6 +11,7 @@ var chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 var multidepRequire = require('multidep')('test/multidep.json')
 var quickTemp = require('quick-temp')
+var symlinkOrCopy = require('symlink-or-copy');
 
 function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
   var files = fs.readdirSync(sourceDir)
@@ -84,10 +85,25 @@ describe('integration test', function(){
     })
 
     describe('stable inputPaths', function() {
-      var inputPaths
+      var tmp, inputPaths, originalCanSymlink, builder
 
       beforeEach(function() {
         inputPaths = []
+
+        originalCanSymlink = symlinkOrCopy.canSymlink
+        tmp = {}
+      })
+
+      afterEach(function() {
+        symlinkOrCopy.setOptions({
+          fs: fs,
+          isWindows: process.platform === 'win32',
+          canSymlink: originalCanSymlink
+        })
+
+        quickTemp.remove(tmp, 'fixtures')
+
+        return builder && builder.cleanup()
       })
 
       function UnstableOutputPathTree(inputTree) {
@@ -147,7 +163,7 @@ describe('integration test', function(){
       }
 
       function isConsistent(inputNode) {
-        var builder = new Builder_0_16(inputNode)
+        builder = new Builder_0_16(inputNode)
 
         function buildAndCheck() {
           return RSVP.Promise.resolve()
@@ -169,12 +185,7 @@ describe('integration test', function(){
           .then(buildAndCheck)
           .then(function(fileExists) {
             expect(inputPaths[0]).to.equal(inputPaths[1])
-
-            var inputPathsAreEqual = inputPaths[0] === inputPaths[1]
-
-            return fileExists && inputPathsAreEqual
           })
-          .finally(function() { builder.cleanup() })
       }
 
       it('provides stable inputPaths when upstream output path changes', function() {
@@ -189,6 +200,38 @@ describe('integration test', function(){
         var inputTracker = new InputPathTracker([unstableNode])
 
         return isConsistent(inputTracker)
+      })
+
+      it('provides stable inputPaths when upstream output path is consistent without symlinking', function() {
+        symlinkOrCopy.setOptions({
+          fs: fs,
+          isWindows: process.platform === 'win32',
+          canSymlink: false
+        })
+
+        quickTemp.makeOrRemake(tmp, 'fixtures')
+        fixturify.writeSync(tmp.fixtures, {
+          'foo.txt': 'foo contents'
+        });
+
+        var unstableNode = new StableOutputPathTree(tmp.fixtures)
+        var inputTracker = new InputPathTracker([unstableNode])
+
+        return isConsistent(inputTracker)
+          .then(function() {
+            fixturify.writeSync(tmp.fixtures, {
+              'foo.txt': 'foo other contents'
+            });
+
+            return builder.build();
+          })
+          .then(function(hash) {
+            var fixture = fixturify.readSync(hash.directory)
+
+            expect(fixture).to.deep.equal({
+              'foo.txt': 'foo other contents - from input node #0 - from input node #0',
+            })
+          })
       })
     })
   })

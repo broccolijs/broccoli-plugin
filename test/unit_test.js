@@ -97,48 +97,50 @@ describe('unit tests', function() {
   })
 
   describe('__broccoliGetInfo__', function() {
-    function expectCorrectInterface(pluginInterface) {
-      expect(pluginInterface).to.have.property('nodeType', 'transform')
-      expect(pluginInterface).to.have.property('inputNodes').that.deep.equals([])
-      expect(pluginInterface).to.have.property('persistentOutput', false)
-      expect(pluginInterface).to.have.property('name', 'NoopPlugin')
-      expect(pluginInterface).to.have.property('annotation', undefined)
-      expect(pluginInterface).to.have.property('createCacheDirectory', true)
+    describe('builderFeatures argument', function() {
+      function expectBasicInterface(pluginInterface) {
+        expect(pluginInterface).to.have.property('nodeType', 'transform')
+        expect(pluginInterface).to.have.property('inputNodes').that.deep.equals([])
+        expect(pluginInterface).to.have.property('persistentOutput', false)
+        expect(pluginInterface).to.have.property('name', 'NoopPlugin')
+        expect(pluginInterface).to.have.property('annotation', undefined)
 
-      expect(typeof pluginInterface.setup).to.equal('function')
-      expect(typeof pluginInterface.getCallbackObject).to.equal('function')
-      expect(typeof pluginInterface.instantiationStack).to.equal('string')
-    }
+        expect(typeof pluginInterface.setup).to.equal('function')
+        expect(typeof pluginInterface.getCallbackObject).to.equal('function')
+        expect(typeof pluginInterface.instantiationStack).to.equal('string')
+      }
 
-    it('returns a plugin interface with explicit feature flags', function() {
-      var node = new NoopPlugin([])
-      expectCorrectInterface(node.__broccoliGetInfo__({
-        persistentOutputFlag: true,
-        sourceDirectories: true
-      }))
-    })
-
-    it('sets createCacheDirectory if provided at instantiation`', function() {
-      var node = new NoopPlugin([], {
-        createCacheDirectory: false
+      it('returns a plugin interface with explicit feature flags', function() {
+        var node = new NoopPlugin([])
+        expectBasicInterface(node.__broccoliGetInfo__({
+          persistentOutputFlag: true,
+          sourceDirectories: true
+        }))
       })
 
-      var pluginInterface = node.__broccoliGetInfo__()
-      expect(pluginInterface).to.have.property('createCacheDirectory', false)
+      it('returns a plugin interface when no feature flags are given', function() {
+        var node = new NoopPlugin([])
+        expectBasicInterface(node.__broccoliGetInfo__())
+      })
+
+      it('throws an error when not passed enough feature flags', function() {
+        var node = new NoopPlugin([])
+        expect(function() {
+          // Pass empty features object, rather than missing (= default) argument
+          node.__broccoliGetInfo__({})
+        }).to.throw(/Minimum builderFeatures required/)
+      })
     })
 
+    describe('features', function() {
+      it('sets createCacheDirectory if provided at instantiation`', function() {
+        var node = new NoopPlugin([], {
+          createCacheDirectory: false
+        })
 
-    it('returns a plugin interface when no feature flags are given', function() {
-      var node = new NoopPlugin([])
-      expectCorrectInterface(node.__broccoliGetInfo__())
-    })
-
-    it('throws an error when not passed enough feature flags', function() {
-      var node = new NoopPlugin([])
-      expect(function() {
-        // Pass empty features object, rather than missing (= default) argument
-        node.__broccoliGetInfo__({})
-      }).to.throw(/Minimum builderFeatures required/)
+        var pluginInterface = node.__broccoliGetInfo__()
+        expect(pluginInterface).to.have.property('createCacheDirectory', false)
+      })
     })
   })
 })

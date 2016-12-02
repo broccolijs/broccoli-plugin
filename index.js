@@ -27,7 +27,7 @@ function Plugin(inputNodes, options) {
   this._baseConstructorCalled = true
   this._inputNodes = inputNodes
   this._persistentOutput = !!options.persistentOutput
-  this._createCacheDirectory = (options.createCacheDirectory != null) ? !!options.createCacheDirectory : true
+  this._needsCache = (options.needsCache != null) ? !!options.needsCache : true
 
   this._checkOverrides()
 }
@@ -48,7 +48,7 @@ Plugin.prototype._checkOverrides = function() {
 Plugin.prototype.__broccoliFeatures__ = Object.freeze({
   persistentOutputFlag: true,
   sourceDirectories: true,
-  createCacheDirectoryFlag: true
+  needsCacheFlag: true
 })
 
 // The Broccoli builder calls plugin.__broccoliGetInfo__
@@ -65,13 +65,13 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
     name: this._name,
     annotation: this._annotation,
     persistentOutput: this._persistentOutput,
-    createCacheDirectory: this._createCacheDirectory
+    needsCache: this._needsCache
   }
 
   // Go backwards in time, removing properties from nodeInfo if they are not
   // supported by the builder. Add new features at the top.
-  if (!this.builderFeatures.createCacheDirectoryFlag) {
-    delete nodeInfo.createCacheDirectory
+  if (!this.builderFeatures.needsCacheFlag) {
+    delete nodeInfo.needsCache
   }
 
   return nodeInfo
@@ -91,8 +91,8 @@ Plugin.prototype._setup = function(builderFeatures, options) {
   this._builderFeatures = builderFeatures
   this.inputPaths = options.inputPaths
   this.outputPath = options.outputPath
-  if (!this.builderFeatures.createCacheDirectoryFlag) {
-    this.cachePath = this._createCacheDirectory ? options.cachePath : undefined
+  if (!this.builderFeatures.needsCacheFlag) {
+    this.cachePath = this._needsCache ? options.cachePath : undefined
   } else {
     this.cachePath = options.cachePath
   }

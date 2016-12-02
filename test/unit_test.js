@@ -133,13 +133,13 @@ describe('unit tests', function() {
     })
 
     describe('features', function() {
-      it('sets createCacheDirectory if provided at instantiation`', function() {
+      it('sets needsCache if provided at instantiation`', function() {
         var node = new NoopPlugin([], {
-          createCacheDirectory: false
+          needsCache: false
         })
 
         var pluginInterface = node.__broccoliGetInfo__()
-        expect(pluginInterface).to.have.property('createCacheDirectory', false)
+        expect(pluginInterface).to.have.property('needsCache', false)
       })
     })
 
@@ -173,7 +173,7 @@ describe('unit tests', function() {
         expect(node.__broccoliGetInfo__({
           persistentOutputFlag: true,
           sourceDirectories: true,
-          createCacheDirectoryFlag: true
+          needsCacheFlag: true
         })).to.have.all.keys([
           'nodeType',
           'inputNodes',
@@ -183,7 +183,7 @@ describe('unit tests', function() {
           'name',
           'annotation',
           'persistentOutput',
-          'createCacheDirectory'
+          'needsCache'
         ])
       })
     })

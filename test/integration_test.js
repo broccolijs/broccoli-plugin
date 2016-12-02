@@ -309,7 +309,7 @@ describe('integration test', function(){
         })
       })
 
-      describe('createCacheDirectory', function() {
+      describe('needsCache', function() {
         function hasCacheDirectory(options) {
           var plugin = new NoopPlugin([], options)
           var builder = new Builder(plugin)
@@ -327,12 +327,12 @@ describe('integration test', function(){
           return expect(hasCacheDirectory()).to.eventually.equal(true)
         })
 
-        it('has no cache directory when createCacheDirectory is false', function() {
-          return expect(hasCacheDirectory({ createCacheDirectory: false })).to.eventually.equal(false)
+        it('has no cache directory when needsCache is false', function() {
+          return expect(hasCacheDirectory({ needsCache: false })).to.eventually.equal(false)
         })
 
-        it('has cache directory when createCacheDirectory is true', function() {
-          return expect(hasCacheDirectory({ createCacheDirectory: true })).to.eventually.equal(true)
+        it('has cache directory when needsCache is true', function() {
+          return expect(hasCacheDirectory({ needsCache: true })).to.eventually.equal(true)
         })
       })
     })

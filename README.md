@@ -49,7 +49,7 @@ Call this base class constructor from your subclass constructor.
       multiple instances of the same plugin apart.
     * `persistentOutput`: If true, the output directory is not automatically
       emptied between builds.
-    * `createCacheDirectory` : If `true`, a cache directory is created automatically
+    * `needsCache` : If `true`, a cache directory is created automatically
       and the path is set at `cachePath`. If `false`, a cache directory is not created
       and `this.cachePath` is `undefined`. Defaults to `true`.
 
@@ -70,7 +70,7 @@ This function will typically access the following read-only properties:
 * `this.cachePath`: The path on disk to an auxiliary cache directory. Use this
   to store files that you want preserved between builds. This directory will
   only be deleted when Broccoli exits. If a cache directory is not needed, set
-  `createCacheDirectory` to `false` when calling `broccoli-plugin` constructor.
+  `needsCache` to `false` when calling `broccoli-plugin` constructor.
 
 All paths stay the same between builds.
 

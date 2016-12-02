@@ -16,7 +16,7 @@ function ReadCompat(plugin) {
 
   quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name)
 
-  if (this.pluginInterface.createCacheDirectory) {
+  if (this.pluginInterface.needsCache) {
     quickTemp.makeOrReuse(this, 'cachePath', this.pluginInterface.name)
   } else {
     this.cachePath = undefined

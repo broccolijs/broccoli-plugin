@@ -27,6 +27,7 @@ function Plugin(inputNodes, options) {
   this._baseConstructorCalled = true
   this._inputNodes = inputNodes
   this._persistentOutput = !!options.persistentOutput
+  this._needsCache = (options.needsCache != null) ? !!options.needsCache : true
 
   this._checkOverrides()
 }
@@ -46,15 +47,16 @@ Plugin.prototype._checkOverrides = function() {
 // For future extensibility, we version the API using feature flags
 Plugin.prototype.__broccoliFeatures__ = Object.freeze({
   persistentOutputFlag: true,
-  sourceDirectories: true
+  sourceDirectories: true,
+  needsCacheFlag: true
 })
 
 // The Broccoli builder calls plugin.__broccoliGetInfo__
 Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
-  builderFeatures = this._checkBuilderFeatures(builderFeatures)
+  this.builderFeatures = this._checkBuilderFeatures(builderFeatures)
   if (!this._baseConstructorCalled) throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
 
-  return {
+  var nodeInfo = {
     nodeType: 'transform',
     inputNodes: this._inputNodes,
     setup: this._setup.bind(this),
@@ -62,8 +64,17 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
     instantiationStack: this._instantiationStack,
     name: this._name,
     annotation: this._annotation,
-    persistentOutput: this._persistentOutput
+    persistentOutput: this._persistentOutput,
+    needsCache: this._needsCache
   }
+
+  // Go backwards in time, removing properties from nodeInfo if they are not
+  // supported by the builder. Add new features at the top.
+  if (!this.builderFeatures.needsCacheFlag) {
+    delete nodeInfo.needsCache
+  }
+
+  return nodeInfo
 }
 
 Plugin.prototype._checkBuilderFeatures = function(builderFeatures) {
@@ -80,7 +91,11 @@ Plugin.prototype._setup = function(builderFeatures, options) {
   this._builderFeatures = builderFeatures
   this.inputPaths = options.inputPaths
   this.outputPath = options.outputPath
-  this.cachePath = options.cachePath
+  if (!this.builderFeatures.needsCacheFlag) {
+    this.cachePath = this._needsCache ? options.cachePath : undefined
+  } else {
+    this.cachePath = options.cachePath
+  }
 }
 
 Plugin.prototype.toString = function() {

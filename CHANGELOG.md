@@ -1,5 +1,7 @@
 # master
 
+# 1.2.3
+
 * Avoid extra work in `.read`-compatibility mode when input nodes have stable output paths
 
 # 1.2.2

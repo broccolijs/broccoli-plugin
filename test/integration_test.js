@@ -33,6 +33,13 @@ AnnotatingPlugin.prototype.build = function() {
   }
 }
 
+NoopPlugin.prototype = Object.create(Plugin.prototype)
+NoopPlugin.prototype.constructor = NoopPlugin
+function NoopPlugin() {
+  Plugin.apply(this, arguments)
+}
+NoopPlugin.prototype.build = function() {}
+
 
 
 describe('integration test', function(){
@@ -299,6 +306,33 @@ describe('integration test', function(){
 
         it('is persistent when persistentOutput is true', function() {
           return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true)
+        })
+      })
+
+      describe('createCacheDirectory', function() {
+        function hasCacheDirectory(options) {
+          var plugin = new NoopPlugin([], options)
+          var builder = new Builder(plugin)
+          return build(builder)
+            .then(function(outputPath) {
+              if (plugin.cachePath != null) {
+                expect(fs.existsSync(plugin.cachePath)).to.equal(true)
+              }
+              return plugin.cachePath != null
+            })
+            .finally(function() { builder.cleanup() })
+        }
+
+        it('has cache directory by default', function() {
+          return expect(hasCacheDirectory()).to.eventually.equal(true)
+        })
+
+        it('has no cache directory when createCacheDirectory is false', function() {
+          return expect(hasCacheDirectory({ createCacheDirectory: false })).to.eventually.equal(false)
+        })
+
+        it('has cache directory when createCacheDirectory is true', function() {
+          return expect(hasCacheDirectory({ createCacheDirectory: true })).to.eventually.equal(true)
         })
       })
     })

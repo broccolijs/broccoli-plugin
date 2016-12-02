@@ -1,5 +1,10 @@
 # master
 
+# 1.3.0
+
+* Add `pluginInterface.needsCache` and expose as `options.needsCache`. This adds the ability
+  to opt-out of cache directory creation.
+
 # 1.2.3
 
 * Avoid extra work in `.read`-compatibility mode when input nodes have stable output paths

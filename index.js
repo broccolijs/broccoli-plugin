@@ -56,7 +56,7 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
   this.builderFeatures = this._checkBuilderFeatures(builderFeatures)
   if (!this._baseConstructorCalled) throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
 
-  return {
+  var nodeInfo = {
     nodeType: 'transform',
     inputNodes: this._inputNodes,
     setup: this._setup.bind(this),
@@ -67,6 +67,14 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
     persistentOutput: this._persistentOutput,
     createCacheDirectory: this._createCacheDirectory
   }
+
+  // Go backwards in time, removing properties from nodeInfo if they are not
+  // supported by the builder. Add new features at the top.
+  if (!this.builderFeatures.createCacheDirectoryFlag) {
+    delete nodeInfo.createCacheDirectory
+  }
+
+  return nodeInfo
 }
 
 Plugin.prototype._checkBuilderFeatures = function(builderFeatures) {

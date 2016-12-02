@@ -142,5 +142,50 @@ describe('unit tests', function() {
         expect(pluginInterface).to.have.property('createCacheDirectory', false)
       })
     })
+
+    describe('backwards compatibility', function() {
+      // All we're testing here is that old builder versions don't get
+      // properties that they don't support from __broccoliGetInfo__(). They
+      // typically won't care, so this is mostly for the sake of exactness.
+      //
+      // The main backwards compatiblity tests are not here but in the
+      // integration test suite, which tests against all Broccoli versions.
+
+      var node = new NoopPlugin([])
+
+      it('2 feature flags', function() {
+        expect(node.__broccoliGetInfo__({
+          persistentOutputFlag: true,
+          sourceDirectories: true
+        })).to.have.all.keys([
+          'nodeType',
+          'inputNodes',
+          'setup',
+          'getCallbackObject',
+          'instantiationStack',
+          'name',
+          'annotation',
+          'persistentOutput'
+        ])
+      })
+
+      it('3 feature flags', function() {
+        expect(node.__broccoliGetInfo__({
+          persistentOutputFlag: true,
+          sourceDirectories: true,
+          createCacheDirectoryFlag: true
+        })).to.have.all.keys([
+          'nodeType',
+          'inputNodes',
+          'setup',
+          'getCallbackObject',
+          'instantiationStack',
+          'name',
+          'annotation',
+          'persistentOutput',
+          'createCacheDirectory'
+        ])
+      })
+    })
   })
 })

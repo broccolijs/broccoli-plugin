@@ -10,7 +10,17 @@ var chai = require('chai'), expect = chai.expect
 var chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 var multidepRequire = require('multidep')('test/multidep.json')
+var quickTemp = require('quick-temp')
+var symlinkOrCopy = require('symlink-or-copy');
 
+function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
+  var files = fs.readdirSync(sourceDir)
+  for (var j = 0; j < files.length; j++) {
+    var content = fs.readFileSync(path.join(sourceDir, files[j]))
+    content += ' - from input node #' + sourceDirId
+    fs.writeFileSync(path.join(destDir, files[j]), content)
+  }
+}
 
 AnnotatingPlugin.prototype = Object.create(Plugin.prototype)
 AnnotatingPlugin.prototype.constructor = AnnotatingPlugin
@@ -19,12 +29,7 @@ function AnnotatingPlugin() {
 }
 AnnotatingPlugin.prototype.build = function() {
   for (var i = 0; i < this.inputPaths.length; i++) {
-    var files = fs.readdirSync(this.inputPaths[i])
-    for (var j = 0; j < files.length; j++) {
-      var content = fs.readFileSync(path.join(this.inputPaths[i], files[j]))
-      content += ' - from input node #' + i
-      fs.writeFileSync(path.join(this.outputPath, files[j]), content)
-    }
+    copyFilesWithAnnotation(i, this.inputPaths[i], this.outputPath)
   }
 }
 
@@ -77,6 +82,157 @@ describe('integration test', function(){
         .then(function() {
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1')
         })
+    })
+
+    describe('stable inputPaths', function() {
+      var tmp, inputPaths, originalCanSymlink, builder
+
+      beforeEach(function() {
+        inputPaths = []
+
+        originalCanSymlink = symlinkOrCopy.canSymlink
+        tmp = {}
+      })
+
+      afterEach(function() {
+        symlinkOrCopy.setOptions({
+          fs: fs,
+          isWindows: process.platform === 'win32',
+          canSymlink: originalCanSymlink
+        })
+
+        quickTemp.remove(tmp, 'fixtures')
+
+        return builder && builder.cleanup()
+      })
+
+      function UnstableOutputPathTree(inputTree) {
+        this._inputTree = inputTree;
+        quickTemp.makeOrReuse(this, 'outputBasePath')
+        this._buildCount = 0;
+      }
+      UnstableOutputPathTree.prototype.read = function(readTree) {
+        var self = this
+
+        quickTemp.makeOrRemake(self, 'outputBasePath')
+
+        return readTree(this._inputTree)
+          .then(function(inputTreesOutputPath) {
+            var outputPath = path.join(self.outputBasePath, '' + self._buildCount++)
+            fs.mkdirSync(outputPath)
+
+            copyFilesWithAnnotation(0, inputTreesOutputPath, outputPath)
+
+            return outputPath
+          })
+      }
+      UnstableOutputPathTree.prototype.cleanup = function() {
+        quickTemp.remove(this, 'outputBasePath');
+      }
+
+      function StableOutputPathTree(inputTree) {
+        this._inputTree = inputTree;
+        quickTemp.makeOrReuse(this, 'outputPath')
+      }
+      StableOutputPathTree.prototype.read = function(readTree) {
+        var self = this
+
+        quickTemp.makeOrRemake(self, 'outputPath')
+
+        return readTree(this._inputTree)
+          .then(function(inputTreesOutputPath) {
+            copyFilesWithAnnotation(0, inputTreesOutputPath, self.outputPath)
+
+            return self.outputPath
+          })
+      }
+      StableOutputPathTree.prototype.cleanup = function() {
+        quickTemp.remove(this, 'outputPath');
+      }
+
+      function InputPathTracker() {
+        Plugin.apply(this, arguments)
+      }
+      InputPathTracker.prototype = Object.create(AnnotatingPlugin.prototype)
+      InputPathTracker.prototype.constructor = InputPathTracker
+
+      InputPathTracker.prototype.build = function() {
+        inputPaths.push(this.inputPaths[0]);
+
+        return AnnotatingPlugin.prototype.build.apply(this, arguments);
+      }
+
+      function isConsistent(inputNode) {
+        builder = new Builder_0_16(inputNode)
+
+        function buildAndCheck() {
+          return RSVP.Promise.resolve()
+            .then(function() {
+              return builder.build()
+            })
+            .then(function(hash) {
+              return fixturify.readSync(hash.directory)
+            })
+            .then(function(fixture) {
+              expect(fixture).to.deep.equal({
+                'foo.txt': 'foo contents - from input node #0 - from input node #0',
+              })
+
+              return fixture;
+            })
+        }
+        return buildAndCheck()
+          .then(buildAndCheck)
+          .then(function(fileExists) {
+            expect(inputPaths[0]).to.equal(inputPaths[1])
+          })
+      }
+
+      it('provides stable inputPaths when upstream output path changes', function() {
+        var unstableNode = new UnstableOutputPathTree(node1)
+        var inputTracker = new InputPathTracker([unstableNode])
+
+        return isConsistent(inputTracker)
+      })
+
+      it('provides stable inputPaths when upstream output path is consistent', function() {
+        var unstableNode = new StableOutputPathTree(node1)
+        var inputTracker = new InputPathTracker([unstableNode])
+
+        return isConsistent(inputTracker)
+      })
+
+      it('provides stable inputPaths when upstream output path is consistent without symlinking', function() {
+        symlinkOrCopy.setOptions({
+          fs: fs,
+          isWindows: process.platform === 'win32',
+          canSymlink: false
+        })
+
+        quickTemp.makeOrRemake(tmp, 'fixtures')
+        fixturify.writeSync(tmp.fixtures, {
+          'foo.txt': 'foo contents'
+        });
+
+        var unstableNode = new StableOutputPathTree(tmp.fixtures)
+        var inputTracker = new InputPathTracker([unstableNode])
+
+        return isConsistent(inputTracker)
+          .then(function() {
+            fixturify.writeSync(tmp.fixtures, {
+              'foo.txt': 'foo other contents'
+            });
+
+            return builder.build();
+          })
+          .then(function(hash) {
+            var fixture = fixturify.readSync(hash.directory)
+
+            expect(fixture).to.deep.equal({
+              'foo.txt': 'foo other contents - from input node #0 - from input node #0',
+            })
+          })
+      })
     })
   })
 

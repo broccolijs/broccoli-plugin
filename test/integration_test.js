@@ -384,6 +384,14 @@ describe('integration test', function(){
           reads = [];
         });
 
+        it('throws if revised without sideEffectFree flag', function() {
+          var plugin = new Impure('a');
+
+          expect(function() {
+            plugin.revised();
+          }).to.throw(/not side-effect free/);
+        });
+
         it('works', function() {
           var a = new Pure('a');
           var b = new Pure('b');

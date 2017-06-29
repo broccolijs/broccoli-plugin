@@ -40,7 +40,7 @@ function Plugin(inputNodes, options) {
 
 Plugin.prototype.revised = function() {
   if (this._sideEffectFree !== true) {
-    throw new TypeError('plugin is not side-affect free, plugin.revised is not available');
+    throw new TypeError('plugin is not side-effect free, plugin.revised is not available');
   }
 
   if (isNaN(this._revision)) {

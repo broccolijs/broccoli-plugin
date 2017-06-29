@@ -38,16 +38,12 @@ function Plugin(inputNodes, options) {
 }
 
 
-function getRevision(tree) {
-  return ('_revision' in tree) ? tree._revision : NaN;
-}
-
 Plugin.prototype.revised = function() {
   if (this._sideEffectFree !== true) {
     throw new TypeError('plugin is not side-affect free, plugin.revised is not available');
   }
 
-  if (this._revision !== this._revision) {
+  if (isNaN(this._revision)) {
     this._revision = 0;
   } else {
     this._revision++;
@@ -60,7 +56,7 @@ Plugin.prototype._inputsHaveRevisions = function() {
   for (var i = 0; i < this._inputNodes.length; i++) {
     var inputNode = this._inputNodes[i];
     var lastRevision = this._lastInputTreeRevisions[i];
-    var currentRevision = getRevision(inputNode);
+    var currentRevision = ('_revision' in inputNode) ? inputNode._revision : NaN;
 
     // update our last known _revision state
     this._lastInputTreeRevisions[i] = currentRevision;
@@ -153,20 +149,28 @@ Plugin.prototype.getCallbackObject = function() {
   var plugin = this;
 
   if (plugin._sideEffectFree === false) {
-    return this;
+    return plugin;
   }
 
   return {
     build: function() {
-      if (plugin._inputsHaveRevisions() || isNaN(plugin._revision)) {
-        if (isNaN(plugin._revision)) {
-          plugin.revised();
-        }
+      if (plugin._shouldBuild()) {
         return plugin.build.apply(plugin, arguments);
       }
     }
   };
 }
+
+Plugin.prototype._shouldBuild = function() {
+  if (this._inputsHaveRevisions() || isNaN(this._revision) ) {
+    if (isNaN(this._revision)) {
+      // ensure to increment the revision the first time
+      this.revised();
+    }
+
+    return true;
+  }
+};
 
 Plugin.prototype.build = function() {
   throw new Error('Plugin subclasses must implement a .build() function')

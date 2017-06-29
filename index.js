@@ -24,13 +24,54 @@ function Plugin(inputNodes, options) {
     }
   }
 
+
+  this._lastInputTreeRevisions = inputNodes.map(function() { return NaN; });
+  this._revision = NaN;
+
   this._baseConstructorCalled = true
   this._inputNodes = inputNodes
   this._persistentOutput = !!options.persistentOutput
+  this._sideEffectFree = !!options.sideEffectFree
   this._needsCache = (options.needsCache != null) ? !!options.needsCache : true
 
   this._checkOverrides()
 }
+
+
+function getRevision(tree) {
+  return ('_revision' in tree) ? tree._revision : NaN;
+}
+
+Plugin.prototype.revised = function() {
+  if (this._sideEffectFree !== true) {
+    throw new TypeError('plugin is not side-affect free, plugin.revised is not available');
+  }
+
+  if (this._revision !== this._revision) {
+    this._revision = 0;
+  } else {
+    this._revision++;
+  }
+};
+
+Plugin.prototype._inputsHaveRevisions = function() {
+  var hasRevisions = false;
+
+  for (var i = 0; i < this._inputNodes.length; i++) {
+    var inputNode = this._inputNodes[i];
+    var lastRevision = this._lastInputTreeRevisions[i];
+    var currentRevision = getRevision(inputNode);
+
+    // update our last known _revision state
+    this._lastInputTreeRevisions[i] = currentRevision;
+
+    if (lastRevision !== currentRevision) {
+      hasRevisions = true;
+    }
+  }
+
+  return hasRevisions;
+};
 
 Plugin.prototype._checkOverrides = function() {
   if (typeof this.rebuild === 'function') {
@@ -109,7 +150,22 @@ Plugin.prototype.toString = function() {
 // This indirection allows subclasses like broccoli-caching-writer to hook
 // into calls from the builder, by returning { build: someFunction }
 Plugin.prototype.getCallbackObject = function() {
-  return this
+  var plugin = this;
+
+  if (plugin._sideEffectFree === false) {
+    return this;
+  }
+
+  return {
+    build: function() {
+      if (plugin._inputsHaveRevisions() || isNaN(plugin._revision)) {
+        if (isNaN(plugin._revision)) {
+          plugin.revised();
+        }
+        return plugin.build.apply(plugin, arguments);
+      }
+    }
+  };
 }
 
 Plugin.prototype.build = function() {

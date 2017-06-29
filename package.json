@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "pretest": "multidep test/multidep.json",
-    "test": "mocha"
+    "test": "mocha",
+    "test:debug": "mocha debug"
   },
   "dependencies": {
     "promise-map-series": "^0.2.1",
@@ -27,7 +28,7 @@
     "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "fixturify": "^0.2.0",
-    "mocha": "^2.2.5",
+    "mocha": "^3.4.2",
     "mocha-jshint": "^2.2.3",
     "multidep": "^2.0.0",
     "rsvp": "^3.0.18"

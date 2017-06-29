@@ -14,6 +14,7 @@ module.exports = ReadCompat
 function ReadCompat(plugin) {
   this.pluginInterface = plugin.__broccoliGetInfo__()
 
+
   quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name)
 
   if (this.pluginInterface.needsCache) {
@@ -51,7 +52,6 @@ function ReadCompat(plugin) {
     }
   }
 }
-
 ReadCompat.prototype.read = function(readTree) {
   var self = this
 

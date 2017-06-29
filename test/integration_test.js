@@ -335,6 +335,130 @@ describe('integration test', function(){
           return expect(hasCacheDirectory({ needsCache: true })).to.eventually.equal(true)
         })
       })
+
+      describe('sideEffectFree', function() {
+        function assertReads(builder, actualReads, expectedReads) {
+          return builder.build().then(function (hash) {
+            // ensure depth first order, so the rest of our tests make sense
+            expect(actualReads.slice()).to.deep.eql(expectedReads);
+            actualReads.length = 0; // reset state;
+          });
+        }
+
+        var reads;
+
+        function Pure(path, inputTrees) {
+          Plugin.call(this, inputTrees || [], {
+            persistentOutput: true,
+            sideEffectFree: true
+          })
+          this.name = path;
+          this._path = path;
+        }
+
+        Pure.prototype = Object.create(Plugin.prototype);
+        Pure.prototype.constructor = Plugin;
+
+        Pure.prototype.build = function() {
+          this.revised();
+          reads.push(this._path);
+        };
+
+        function Impure(path, inputTrees) {
+          Plugin.call(this, inputTrees || [], {
+            persistentOutput: true,
+            sideEffectFree: false
+          })
+          this.name = path;
+          this._path = path;
+        }
+
+        Impure.prototype = Object.create(Plugin.prototype);
+        Impure.prototype.constructor = Plugin;
+
+        Impure.prototype.build = function() {
+          reads.push(this._path);
+        };
+
+        beforeEach(function() {
+          reads = [];
+        });
+
+        it('works', function() {
+          var a = new Pure('a');
+          var b = new Pure('b');
+          var c = new Pure('c');
+          var d = new Pure('d', [a, b, c]);
+          var e = new Pure('e');
+          var f = new Pure('f');
+          var g = new Pure('g', [f]);
+          var h = new Pure('h', [d, e, g]);
+
+          var builder = new Builder(h);
+
+          return assertReads(builder, reads, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']).then(function() {
+            // no changes, and all are pure
+            return assertReads(builder, reads, []);
+          }).then(function() {
+            a.revised();
+            return assertReads(builder, reads, ['d', 'h']);
+          }).then(function() {
+            a.revised();
+            f.revised();
+            return assertReads(builder, reads, ['d', 'g', 'h']);
+          }).then(function() {
+            e.revised();
+            return assertReads(builder, reads, ['h']);
+          }).then(function() {
+            f.revised();
+            return assertReads(builder, reads, ['g', 'h']);
+          }).then(function() {
+            h.revised();
+            return assertReads(builder, reads, []);
+          })
+            .finally(function() {
+              return builder.cleanup();
+            });
+        });
+
+        it('works with mixed capability plugins', function() {
+          var a = new Pure('a');
+          var b = new Pure('b');
+          var c = new Pure('c');
+          var d = new Pure('d', [a, b, c]);
+          var e = new Pure('e');
+          var f = new Pure('f');
+          var g = new Impure('g', [f]);
+          var h = new Pure('h', [d, e, g]);
+
+          var builder = new Builder(h);
+
+          return assertReads(builder, reads, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']).then(function() {
+            // no changes, and all are pure
+            return assertReads(builder, reads, ['g', 'h']);
+          }).then(function() {
+            a.revised();
+            return assertReads(builder, reads, ['d', 'g', 'h']);
+          }).then(function() {
+            a.revised();
+            f.revised();
+            return assertReads(builder, reads, ['d', 'g', 'h']);
+          }).then(function() {
+            e.revised();
+            return assertReads(builder, reads, ['g', 'h']);
+          }).then(function() {
+            f.revised();
+            return assertReads(builder, reads, ['g', 'h']);
+          }).then(function() {
+            h.revised();
+            return assertReads(builder, reads, ['g', 'h']);
+          })
+            .finally(function() {
+              return builder.cleanup();
+            });
+
+        });
+      });
     })
   })
 })

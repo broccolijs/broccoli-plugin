@@ -56,7 +56,7 @@ Plugin.prototype._inputsHaveRevisions = function() {
   for (var i = 0; i < this._inputNodes.length; i++) {
     var inputNode = this._inputNodes[i];
     var lastRevision = this._lastInputTreeRevisions[i];
-    var currentRevision = ('_revision' in inputNode) ? inputNode._revision : NaN;
+    var currentRevision = typeof inputNode === 'object' && ('_revision' in inputNode) ? inputNode._revision : NaN;
 
     // update our last known _revision state
     this._lastInputTreeRevisions[i] = currentRevision;

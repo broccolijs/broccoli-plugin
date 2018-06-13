@@ -23,13 +23,12 @@
     "symlink-or-copy": "^1.1.8"
   },
   "devDependencies": {
-    "broccoli-fixturify": "^0.2.0",
-    "chai": "^2.3.0",
-    "chai-as-promised": "^5.0.0",
-    "fixturify": "^0.2.0",
-    "mocha": "^2.2.5",
+    "broccoli-fixturify": "^0.3.0",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "fixturify": "^0.3.4",
+    "mocha": "^5.2.0",
     "mocha-jshint": "^2.2.3",
-    "multidep": "^2.0.0",
-    "rsvp": "^3.0.18"
+    "multidep": "^2.0.0"
   }
 }

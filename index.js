@@ -146,6 +146,19 @@ Plugin.prototype._initializeReadCompat = function() {
 }
 
 function isPossibleNode(node) {
-  return typeof node === 'string' ||
-    (node !== null && typeof node === 'object')
+  var type = typeof node;
+
+  if (node === null) {
+    return false;
+  } else if (type === 'string') {
+    return true;
+  } else if (type === 'object' && typeof node.__broccoliGetInfo__ === 'function') {
+    // Broccoli 1.x+
+    return true;
+  } else if (type === 'object' && typeof node.read === 'function') {
+    // Broccoli / broccoli-builder <= 0.18
+    return true;
+  } else {
+    return false;
+  }
 }

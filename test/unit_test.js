@@ -63,6 +63,10 @@ describe('unit tests', function() {
         new TestPlugin([true])
       }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got true for inputNodes[0]')
 
+      expect(function() {
+        new TestPlugin([ [] ])
+      }).to.throw(TypeError, /TestPlugin: Expected Broccoli node/)
+
       // Expect not to throw
       new TestPlugin([])
       new TestPlugin(['some/path'])

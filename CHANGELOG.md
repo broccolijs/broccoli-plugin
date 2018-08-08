@@ -1,5 +1,11 @@
 # master
 
+# 1.3.1
+
+* Update the validation for input nodes. Previously passing `[]` as an input
+  node wasn't caught by the validation but caused an error later during
+  `.build` method invocation.
+
 # 1.3.0
 
 * Add `pluginInterface.needsCache` and expose as `options.needsCache`. This adds the ability

@@ -1,1 +1,1 @@
-require('mocha-jshint')()
+require('mocha-jshint')();

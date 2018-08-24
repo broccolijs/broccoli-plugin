@@ -1,4 +1,5 @@
 {
+  "esversion": 6,
   "maxerr": 50, // {int} Maximum error before stopping
 
   // Enforcing

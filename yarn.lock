@@ -24,6 +24,10 @@ broccoli-fixturify@^0.3.0:
     broccoli-plugin "^1.2.0"
     fixturify "~0.3.0"
 
+broccoli-node-api@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/broccoli-node-api/-/broccoli-node-api-1.0.0.tgz#c72405eb4d73d0d0934aea9188de310f7d5a5d6c"
+
 broccoli-plugin@^1.2.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/broccoli-plugin/-/broccoli-plugin-1.3.0.tgz#bee704a8e42da08cb58e513aaa436efb7f0ef1ee"
@@ -404,6 +408,10 @@ symlink-or-copy@^1.1.8:
 type-detect@^4.0.0:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
+
+typescript@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.1.tgz#43738f29585d3a87575520a4b93ab6026ef11fdb"
 
 underscore.string@~3.3.4:
   version "3.3.4"

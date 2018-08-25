@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "lib": ["es6"],
+    "types": ["node"]
+  },
+  "files": ["index.ts", "read_compat.ts"]
+}

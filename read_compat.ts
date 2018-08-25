@@ -1,16 +1,16 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var quickTemp = require('quick-temp');
-var mapSeries = require('promise-map-series');
-var rimraf = require('rimraf');
-var symlinkOrCopy = require('symlink-or-copy');
-var symlinkOrCopySync = symlinkOrCopy.sync;
+import fs = require('fs');
+import path = require('path');
+import mapSeries = require('promise-map-series');
+import quickTemp = require('quick-temp');
+import rimraf = require('rimraf');
+import symlinkOrCopy = require('symlink-or-copy');
+import symlinkOrCopySync = symlinkOrCopy.sync;
 
 // Mimic how a Broccoli builder would call a plugin, using quickTemp to create
 // directories
-module.exports = ReadCompat;
+export = ReadCompat;
 function ReadCompat(plugin) {
   this.pluginInterface = plugin.__broccoliGetInfo__();
 
@@ -31,15 +31,15 @@ function ReadCompat(plugin) {
     this.inputPaths.push(this.inputBasePath);
     this._priorBuildInputNodeOutputPaths.push(this.inputBasePath);
   } else {
-    for (var i = 0; i < this.pluginInterface.inputNodes.length; i++) {
+    for (let i = 0; i < this.pluginInterface.inputNodes.length; i++) {
       this.inputPaths.push(path.join(this.inputBasePath, i + ''));
     }
   }
 
   this.pluginInterface.setup(null, {
+    cachePath: this.cachePath,
     inputPaths: this.inputPaths,
-    outputPath: this.outputPath,
-    cachePath: this.cachePath
+    outputPath: this.outputPath
   });
 
   this.callbackObject = this.pluginInterface.getCallbackObject();
@@ -53,46 +53,45 @@ function ReadCompat(plugin) {
 }
 
 ReadCompat.prototype.read = function(readTree) {
-  var self = this;
-
   if (!this.pluginInterface.persistentOutput) {
     rimraf.sync(this.outputPath);
     fs.mkdirSync(this.outputPath);
   }
 
   return mapSeries(this.pluginInterface.inputNodes, readTree)
-    .then(function(outputPaths) {
-      var priorBuildInputNodeOutputPaths = self._priorBuildInputNodeOutputPaths;
+    .then(outputPaths => {
+      const priorBuildInputNodeOutputPaths = this
+        ._priorBuildInputNodeOutputPaths;
       // In old .read-based Broccoli, the inputNodes's outputPaths can change
       // on each rebuild. But the new API requires that our plugin sees fixed
       // input paths. Therefore, we symlink the inputNodes' outputPaths to our
       // (fixed) inputPaths on each .read.
-      for (var i = 0; i < outputPaths.length; i++) {
-        var priorPath = priorBuildInputNodeOutputPaths[i];
-        var currentPath = outputPaths[i];
+      for (let i = 0; i < outputPaths.length; i++) {
+        const priorPath = priorBuildInputNodeOutputPaths[i];
+        const currentPath = outputPaths[i];
 
         // if this output path is different from last builds or
         // if we cannot symlink then clear and symlink/copy manually
-        var hasDifferentPath = priorPath !== currentPath;
-        var forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
+        const hasDifferentPath = priorPath !== currentPath;
+        const forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
 
         if (forceReSymlinking) {
           // avoid `rimraf.sync` for initial build
           if (priorPath) {
-            rimraf.sync(self.inputPaths[i]);
+            rimraf.sync(this.inputPaths[i]);
           }
 
-          symlinkOrCopySync(currentPath, self.inputPaths[i]);
+          symlinkOrCopySync(currentPath, this.inputPaths[i]);
         }
       }
 
       // save for next builds comparison
-      self._priorBuildInputNodeOutputPaths = outputPaths;
+      this._priorBuildInputNodeOutputPaths = outputPaths;
 
-      return self.callbackObject.build();
+      return this.callbackObject.build();
     })
-    .then(function() {
-      return self.outputPath;
+    .then(() => {
+      return this.outputPath;
     });
 };
 

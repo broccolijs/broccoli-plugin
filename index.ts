@@ -1,9 +1,31 @@
-'use strict';
+import {
+  FeatureSet,
+  TransformNode,
+  TransformNodeInfo
+} from 'broccoli-node-api';
 
-class Plugin {
+class Plugin implements TransformNode {
+  public inputPaths: string[];
+  public outputPath: string;
+  public cachePath: string;
+
+  // tslint:disable-next-line:variable-name
+  public __broccoliFeatures__: FeatureSet;
+
+  protected _instantiationStack: string;
+  protected _name: string;
+  protected _annotation: string;
+  protected _inputNodes: any[];
+  protected _persistentOutput: boolean;
+  protected _needsCache: boolean;
+
+  protected _builderFeatures?: FeatureSet;
+  protected builderFeatures?: FeatureSet;
+
+  private _readCompat?: any;
+  private _readCompatError?: Error;
+
   constructor(inputNodes, options) {
-    if (!(this instanceof Plugin))
-      throw new TypeError('Missing `new` operator');
     // Remember current call stack (minus "Error" line)
     this._instantiationStack = new Error().stack.replace(/[^\n]*\n/, '');
 
@@ -17,16 +39,17 @@ class Plugin {
     }
     this._annotation = options.annotation;
 
-    var label =
+    const label =
       this._name +
       (this._annotation != null ? ' (' + this._annotation + ')' : '');
-    if (!Array.isArray(inputNodes))
+    if (!Array.isArray(inputNodes)) {
       throw new TypeError(
         label +
           ': Expected an array of input nodes (input trees), got ' +
           inputNodes
       );
-    for (var i = 0; i < inputNodes.length; i++) {
+    }
+    for (let i = 0; i < inputNodes.length; i++) {
       if (!isPossibleNode(inputNodes[i])) {
         throw new TypeError(
           label +
@@ -39,15 +62,14 @@ class Plugin {
       }
     }
 
-    this._baseConstructorCalled = true;
     this._inputNodes = inputNodes;
     this._persistentOutput = !!options.persistentOutput;
     this._needsCache = options.needsCache != null ? !!options.needsCache : true;
 
     this._checkOverrides();
   }
-  _checkOverrides() {
-    if (typeof this.rebuild === 'function') {
+  public _checkOverrides() {
+    if (typeof (this as any).rebuild === 'function') {
       throw new Error(
         'For compatibility, plugins must not define a plugin.rebuild() function'
       );
@@ -65,21 +87,18 @@ class Plugin {
   }
 
   // The Broccoli builder calls plugin.__broccoliGetInfo__
-  __broccoliGetInfo__(builderFeatures) {
+  public __broccoliGetInfo__(builderFeatures: FeatureSet) {
     this.builderFeatures = this._checkBuilderFeatures(builderFeatures);
-    if (!this._baseConstructorCalled)
-      throw new Error(
-        'Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)'
-      );
 
-    var nodeInfo = {
+    const nodeInfo: TransformNodeInfo = {
+      annotation: this._annotation,
       nodeType: 'transform',
+      // tslint:disable-next-line:object-literal-sort-keys
       inputNodes: this._inputNodes,
       setup: this._setup.bind(this),
       getCallbackObject: this.getCallbackObject.bind(this), // .build, indirectly
       instantiationStack: this._instantiationStack,
       name: this._name,
-      annotation: this._annotation,
       persistentOutput: this._persistentOutput,
       needsCache: this._needsCache
     };
@@ -93,8 +112,10 @@ class Plugin {
     return nodeInfo;
   }
 
-  _checkBuilderFeatures(builderFeatures) {
-    if (builderFeatures == null) builderFeatures = this.__broccoliFeatures__;
+  public _checkBuilderFeatures(builderFeatures) {
+    if (builderFeatures == null) {
+      builderFeatures = this.__broccoliFeatures__;
+    }
     if (
       !builderFeatures.persistentOutputFlag ||
       !builderFeatures.sourceDirectories
@@ -107,7 +128,7 @@ class Plugin {
     return builderFeatures;
   }
 
-  _setup(builderFeatures, options) {
+  public _setup(builderFeatures, options) {
     builderFeatures = this._checkBuilderFeatures(builderFeatures);
     this._builderFeatures = builderFeatures;
     this.inputPaths = options.inputPaths;
@@ -119,7 +140,7 @@ class Plugin {
     }
   }
 
-  toString() {
+  public toString() {
     return (
       '[' +
       this._name +
@@ -132,17 +153,17 @@ class Plugin {
   //
   // This indirection allows subclasses like broccoli-caching-writer to hook
   // into calls from the builder, by returning { build: someFunction }
-  getCallbackObject() {
+  public getCallbackObject() {
     return this;
   }
 
-  build() {
+  public build() {
     throw new Error('Plugin subclasses must implement a .build() function');
   }
 
   // Compatibility code so plugins can run on old, .read-based Broccoli:
 
-  read(readTree) {
+  public read(readTree) {
     if (this._readCompat == null) {
       try {
         this._initializeReadCompat(); // call this.__broccoliGetInfo__()
@@ -154,30 +175,35 @@ class Plugin {
       }
     }
 
-    if (this._readCompatError != null) throw this._readCompatError;
+    if (this._readCompatError != null) {
+      throw this._readCompatError;
+    }
 
     return this._readCompat.read(readTree);
   }
 
-  cleanup() {
-    if (this._readCompat) return this._readCompat.cleanup();
+  public cleanup() {
+    if (this._readCompat) {
+      return this._readCompat.cleanup();
+    }
   }
 
-  _initializeReadCompat() {
-    var ReadCompat = require('./read_compat');
+  public _initializeReadCompat() {
+    // tslint:disable-next-line:variable-name
+    const ReadCompat = require('./read_compat');
     this._readCompat = new ReadCompat(this);
   }
 }
 
 // For future extensibility, we version the API using feature flags
 Plugin.prototype.__broccoliFeatures__ = Object.freeze({
+  needsCacheFlag: true,
   persistentOutputFlag: true,
-  sourceDirectories: true,
-  needsCacheFlag: true
+  sourceDirectories: true
 });
 
 function isPossibleNode(node) {
-  var type = typeof node;
+  const type = typeof node;
 
   if (node === null) {
     return false;
@@ -197,4 +223,4 @@ function isPossibleNode(node) {
   }
 }
 
-module.exports = Plugin;
+export = Plugin;

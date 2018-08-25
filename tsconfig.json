@@ -4,6 +4,7 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
+    "strict": true,
     "moduleResolution": "node",
     "lib": ["es6"],
     "types": ["node"]

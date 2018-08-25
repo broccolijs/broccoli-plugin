@@ -5,7 +5,7 @@ var path = require('path');
 var RSVP = require('rsvp');
 var fixturify = require('fixturify');
 var Fixturify = require('broccoli-fixturify');
-var Plugin = require('..');
+var Plugin = require('../index');
 var chai = require('chai'),
   expect = chai.expect;
 var chaiAsPromised = require('chai-as-promised');
@@ -23,17 +23,23 @@ function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
   }
 }
 
-class AnnotatingPlugin extends Plugin {
-  build() {
-    for (var i = 0; i < this.inputPaths.length; i++) {
-      copyFilesWithAnnotation(i, this.inputPaths[i], this.outputPath);
-    }
+AnnotatingPlugin.prototype = Object.create(Plugin.prototype);
+AnnotatingPlugin.prototype.constructor = AnnotatingPlugin;
+function AnnotatingPlugin() {
+  Plugin.apply(this, arguments);
+}
+AnnotatingPlugin.prototype.build = function() {
+  for (var i = 0; i < this.inputPaths.length; i++) {
+    copyFilesWithAnnotation(i, this.inputPaths[i], this.outputPath);
   }
-}
+};
 
-class NoopPlugin extends Plugin {
-  build() {}
+NoopPlugin.prototype = Object.create(Plugin.prototype);
+NoopPlugin.prototype.constructor = NoopPlugin;
+function NoopPlugin() {
+  Plugin.apply(this, arguments);
 }
+NoopPlugin.prototype.build = function() {};
 
 describe('integration test', function() {
   var node1, node2;
@@ -72,10 +78,10 @@ describe('integration test', function() {
     it('handles readCompat initialization errors', function() {
       var node = new AnnotatingPlugin([]);
       var initializeReadCompatCalls = 0;
+      debugger;
       node._initializeReadCompat = function() {
         // stub
-        var count = ++initializeReadCompatCalls;
-        throw new Error('someError ' + count);
+        throw new Error('someError ' + ++initializeReadCompatCalls);
       };
       builder = new Builder_0_16(node);
       return RSVP.Promise.resolve()
@@ -160,13 +166,17 @@ describe('integration test', function() {
         quickTemp.remove(this, 'outputPath');
       };
 
-      class InputPathTracker extends AnnotatingPlugin {
-        build() {
-          inputPaths.push(this.inputPaths[0]);
-
-          return super.build();
-        }
+      function InputPathTracker() {
+        Plugin.apply(this, arguments);
       }
+      InputPathTracker.prototype = Object.create(AnnotatingPlugin.prototype);
+      InputPathTracker.prototype.constructor = InputPathTracker;
+
+      InputPathTracker.prototype.build = function() {
+        inputPaths.push(this.inputPaths[0]);
+
+        return AnnotatingPlugin.prototype.build.apply(this, arguments);
+      };
 
       function isConsistent(inputNode) {
         builder = new Builder_0_16(inputNode);
@@ -275,18 +285,18 @@ describe('integration test', function() {
       });
 
       describe('persistent output', function() {
-        class BuildOnce extends Plugin {
-          constructor(options) {
-            super([], options);
-          }
-
-          build() {
-            if (!this.builtOnce) {
-              this.builtOnce = true;
-              fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
-            }
-          }
+        BuildOnce.prototype = Object.create(Plugin.prototype);
+        BuildOnce.prototype.constructor = BuildOnce;
+        function BuildOnce(options) {
+          Plugin.call(this, [], options);
         }
+
+        BuildOnce.prototype.build = function() {
+          if (!this.builtOnce) {
+            this.builtOnce = true;
+            fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
+          }
+        };
 
         function isPersistent(options) {
           var builder = new Builder(new BuildOnce(options));

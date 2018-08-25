@@ -18,6 +18,8 @@
     "test": "mocha"
   },
   "dependencies": {
+    "@types/rimraf": "^2.0.2",
+    "broccoli-node-api": "^1.1.0",
     "promise-map-series": "^0.2.1",
     "quick-temp": "^0.1.3",
     "rimraf": "^2.3.4",

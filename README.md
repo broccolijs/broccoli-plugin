@@ -6,29 +6,28 @@
 ## Example Usage
 
 ```js
-var Plugin = require('broccoli-plugin');
-var path = require('path');
+const Plugin = require('broccoli-plugin');
 
-// Create a subclass MyPlugin derived from Plugin
-MyPlugin.prototype = Object.create(Plugin.prototype);
-MyPlugin.prototype.constructor = MyPlugin;
-function MyPlugin(inputNodes, options) {
-  options = options || {};
-  Plugin.call(this, inputNodes, {
-    annotation: options.annotation
-  });
-  this.options = options;
-}
+class MyPlugin extends Plugin {
 
-MyPlugin.prototype.build = function() {
-  // Read files from this.inputPaths, and write files to this.outputPath.
-  // Silly example:
+  constructor(inputNodes, options = {}) {
+    super(inputNodes, {
+      annotation: options.annotation
+      // see `options` in the bellow README to see a full list of constructor options
+    });
+  }
 
-  // Read 'foo.txt' from the third input node
-  var inputBuffer = fs.readFileSync(path.join(this.inputPaths[2], 'foo.txt'));
-  var outputBuffer = someCompiler(inputBuffer);
-  // Write to 'bar.txt' in this node's output
-  fs.writeFileSync(path.join(this.outputPath, 'bar.txt'), outputBuffer);
+  build() {
+    // Read files from this.inputPaths, and write files to this.outputPath.
+    // Silly example:
+
+    // Read 'foo.txt' from the third input node
+    const input = fs.readFileSync(`${this.inputPaths[2]}/foo.txt`);
+    const output = someCompiler(input);
+
+    // Write to 'bar.txt' in this node's output
+    fs.writeFileSync(`${this.outputPath}/bar.txt`, output);
+  }
 };
 ```
 

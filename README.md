@@ -13,7 +13,7 @@ class MyPlugin extends Plugin {
   constructor(inputNodes, options = {}) {
     super(inputNodes, {
       annotation: options.annotation
-      // see `options` in the bellow README to see a full list of constructor options
+      // see `options` in the below README to see a full list of constructor options
     });
   }
 

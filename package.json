@@ -1,17 +1,17 @@
 {
   "name": "broccoli-plugin",
-  "description": "Base class for all Broccoli plugins",
   "version": "1.3.1",
-  "author": "Jo Liss <joliss42@gmail.com>",
-  "main": "index.js",
-  "license": "MIT",
+  "description": "Base class for all Broccoli plugins",
+  "keywords": [
+    "broccoli-plugin"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/broccolijs/broccoli-plugin"
   },
-  "keywords": [
-    "broccoli-plugin"
-  ],
+  "license": "MIT",
+  "author": "Jo Liss <joliss42@gmail.com>",
+  "main": "index.js",
   "scripts": {
     "pretest": "multidep test/multidep.json",
     "test": "mocha"
@@ -29,6 +29,7 @@
     "fixturify": "^0.3.4",
     "mocha": "^5.2.0",
     "mocha-jshint": "^2.2.3",
-    "multidep": "^2.0.0"
+    "multidep": "^2.0.0",
+    "prettier": "^1.16.4"
   }
 }

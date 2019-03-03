@@ -1,60 +1,68 @@
-'use strict'
+'use strict';
 
-module.exports = Plugin
+module.exports = Plugin;
 function Plugin(inputNodes, options) {
-  if (!(this instanceof Plugin)) throw new TypeError('Missing `new` operator')
+  if (!(this instanceof Plugin)) throw new TypeError('Missing `new` operator');
   // Remember current call stack (minus "Error" line)
-  this._instantiationStack = (new Error).stack.replace(/[^\n]*\n/, '')
+  this._instantiationStack = new Error().stack.replace(/[^\n]*\n/, '');
 
-  options = options || {}
+  options = options || {};
   if (options.name != null) {
-    this._name = options.name
+    this._name = options.name;
   } else if (this.constructor && this.constructor.name != null) {
-    this._name = this.constructor.name
+    this._name = this.constructor.name;
   } else {
-    this._name = 'Plugin'
+    this._name = 'Plugin';
   }
-  this._annotation = options.annotation
+  this._annotation = options.annotation;
 
-  var label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '')
-  if (!Array.isArray(inputNodes)) throw new TypeError(label + ': Expected an array of input nodes (input trees), got ' + inputNodes)
+  var label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '');
+  if (!Array.isArray(inputNodes))
+    throw new TypeError(
+      label + ': Expected an array of input nodes (input trees), got ' + inputNodes
+    );
   for (var i = 0; i < inputNodes.length; i++) {
     if (!isPossibleNode(inputNodes[i])) {
-      throw new TypeError(label + ': Expected Broccoli node, got ' + inputNodes[i] + ' for inputNodes[' + i + ']')
+      throw new TypeError(
+        label + ': Expected Broccoli node, got ' + inputNodes[i] + ' for inputNodes[' + i + ']'
+      );
     }
   }
 
-  this._baseConstructorCalled = true
-  this._inputNodes = inputNodes
-  this._persistentOutput = !!options.persistentOutput
-  this._needsCache = (options.needsCache != null) ? !!options.needsCache : true
+  this._baseConstructorCalled = true;
+  this._inputNodes = inputNodes;
+  this._persistentOutput = !!options.persistentOutput;
+  this._needsCache = options.needsCache != null ? !!options.needsCache : true;
 
-  this._checkOverrides()
+  this._checkOverrides();
 }
 
 Plugin.prototype._checkOverrides = function() {
   if (typeof this.rebuild === 'function') {
-    throw new Error('For compatibility, plugins must not define a plugin.rebuild() function')
+    throw new Error('For compatibility, plugins must not define a plugin.rebuild() function');
   }
   if (this.read !== Plugin.prototype.read) {
-    throw new Error('For compatibility, plugins must not define a plugin.read() function')
+    throw new Error('For compatibility, plugins must not define a plugin.read() function');
   }
   if (this.cleanup !== Plugin.prototype.cleanup) {
-    throw new Error('For compatibility, plugins must not define a plugin.cleanup() function')
+    throw new Error('For compatibility, plugins must not define a plugin.cleanup() function');
   }
-}
+};
 
 // For future extensibility, we version the API using feature flags
 Plugin.prototype.__broccoliFeatures__ = Object.freeze({
   persistentOutputFlag: true,
   sourceDirectories: true,
-  needsCacheFlag: true
-})
+  needsCacheFlag: true,
+});
 
 // The Broccoli builder calls plugin.__broccoliGetInfo__
 Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
-  this.builderFeatures = this._checkBuilderFeatures(builderFeatures)
-  if (!this._baseConstructorCalled) throw new Error('Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)')
+  this.builderFeatures = this._checkBuilderFeatures(builderFeatures);
+  if (!this._baseConstructorCalled)
+    throw new Error(
+      'Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)'
+    );
 
   var nodeInfo = {
     nodeType: 'transform',
@@ -65,85 +73,84 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
     name: this._name,
     annotation: this._annotation,
     persistentOutput: this._persistentOutput,
-    needsCache: this._needsCache
-  }
+    needsCache: this._needsCache,
+  };
 
   // Go backwards in time, removing properties from nodeInfo if they are not
   // supported by the builder. Add new features at the top.
   if (!this.builderFeatures.needsCacheFlag) {
-    delete nodeInfo.needsCache
+    delete nodeInfo.needsCache;
   }
 
-  return nodeInfo
-}
+  return nodeInfo;
+};
 
 Plugin.prototype._checkBuilderFeatures = function(builderFeatures) {
-  if (builderFeatures == null) builderFeatures = this.__broccoliFeatures__
+  if (builderFeatures == null) builderFeatures = this.__broccoliFeatures__;
   if (!builderFeatures.persistentOutputFlag || !builderFeatures.sourceDirectories) {
     // No builder in the wild implements less than these.
-    throw new Error('Minimum builderFeatures required: { persistentOutputFlag: true, sourceDirectories: true }')
+    throw new Error(
+      'Minimum builderFeatures required: { persistentOutputFlag: true, sourceDirectories: true }'
+    );
   }
-  return builderFeatures
-}
+  return builderFeatures;
+};
 
 Plugin.prototype._setup = function(builderFeatures, options) {
-  builderFeatures = this._checkBuilderFeatures(builderFeatures)
-  this._builderFeatures = builderFeatures
-  this.inputPaths = options.inputPaths
-  this.outputPath = options.outputPath
+  builderFeatures = this._checkBuilderFeatures(builderFeatures);
+  this._builderFeatures = builderFeatures;
+  this.inputPaths = options.inputPaths;
+  this.outputPath = options.outputPath;
   if (!this.builderFeatures.needsCacheFlag) {
-    this.cachePath = this._needsCache ? options.cachePath : undefined
+    this.cachePath = this._needsCache ? options.cachePath : undefined;
   } else {
-    this.cachePath = options.cachePath
+    this.cachePath = options.cachePath;
   }
-}
+};
 
 Plugin.prototype.toString = function() {
-  return '[' + this._name
-    + (this._annotation != null ? ': ' + this._annotation : '')
-    + ']'
-}
+  return '[' + this._name + (this._annotation != null ? ': ' + this._annotation : '') + ']';
+};
 
 // Return obj on which the builder will call obj.build() repeatedly
 //
 // This indirection allows subclasses like broccoli-caching-writer to hook
 // into calls from the builder, by returning { build: someFunction }
 Plugin.prototype.getCallbackObject = function() {
-  return this
-}
+  return this;
+};
 
 Plugin.prototype.build = function() {
-  throw new Error('Plugin subclasses must implement a .build() function')
-}
-
+  throw new Error('Plugin subclasses must implement a .build() function');
+};
 
 // Compatibility code so plugins can run on old, .read-based Broccoli:
 
 Plugin.prototype.read = function(readTree) {
   if (this._readCompat == null) {
     try {
-      this._initializeReadCompat() // call this.__broccoliGetInfo__()
+      this._initializeReadCompat(); // call this.__broccoliGetInfo__()
     } catch (err) {
       // Prevent trying to initialize again on next .read
-      this._readCompat = false
+      this._readCompat = false;
       // Remember error so we can throw it on all subsequent .read calls
-      this._readCompatError = err
+      this._readCompatError = err;
     }
   }
 
-  if (this._readCompatError != null) throw this._readCompatError
+  if (this._readCompatError != null) throw this._readCompatError;
 
-  return this._readCompat.read(readTree)
-}
+  return this._readCompat.read(readTree);
+};
 
 Plugin.prototype.cleanup = function() {
-  if (this._readCompat) return this._readCompat.cleanup()
-}
+  if (this._readCompat) return this._readCompat.cleanup();
+};
 
 Plugin.prototype._initializeReadCompat = function() {
-  var ReadCompat = require('./read_compat')
-  this._readCompat = new ReadCompat(this)
-}
+  var ReadCompat = require('./read_compat');
+  this._readCompat = new ReadCompat(this);
+};
 
 function isPossibleNode(node) {
   var type = typeof node;

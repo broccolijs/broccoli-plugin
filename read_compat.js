@@ -1,12 +1,12 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var quickTemp = require('quick-temp');
-var mapSeries = require('promise-map-series');
-var rimraf = require('rimraf');
-var symlinkOrCopy = require('symlink-or-copy');
-var symlinkOrCopySync = symlinkOrCopy.sync;
+const fs = require('fs');
+const path = require('path');
+const quickTemp = require('quick-temp');
+const mapSeries = require('promise-map-series');
+const rimraf = require('rimraf');
+const symlinkOrCopy = require('symlink-or-copy');
+const symlinkOrCopySync = symlinkOrCopy.sync;
 
 // Mimic how a Broccoli builder would call a plugin, using quickTemp to create
 // directories
@@ -31,7 +31,7 @@ function ReadCompat(plugin) {
     this.inputPaths.push(this.inputBasePath);
     this._priorBuildInputNodeOutputPaths.push(this.inputBasePath);
   } else {
-    for (var i = 0; i < this.pluginInterface.inputNodes.length; i++) {
+    for (let i = 0; i < this.pluginInterface.inputNodes.length; i++) {
       this.inputPaths.push(path.join(this.inputBasePath, i + ''));
     }
   }
@@ -53,7 +53,7 @@ function ReadCompat(plugin) {
 }
 
 ReadCompat.prototype.read = function(readTree) {
-  var self = this;
+  let self = this;
 
   if (!this.pluginInterface.persistentOutput) {
     rimraf.sync(this.outputPath);
@@ -62,19 +62,19 @@ ReadCompat.prototype.read = function(readTree) {
 
   return mapSeries(this.pluginInterface.inputNodes, readTree)
     .then(function(outputPaths) {
-      var priorBuildInputNodeOutputPaths = self._priorBuildInputNodeOutputPaths;
+      let priorBuildInputNodeOutputPaths = self._priorBuildInputNodeOutputPaths;
       // In old .read-based Broccoli, the inputNodes's outputPaths can change
       // on each rebuild. But the new API requires that our plugin sees fixed
       // input paths. Therefore, we symlink the inputNodes' outputPaths to our
       // (fixed) inputPaths on each .read.
-      for (var i = 0; i < outputPaths.length; i++) {
-        var priorPath = priorBuildInputNodeOutputPaths[i];
-        var currentPath = outputPaths[i];
+      for (let i = 0; i < outputPaths.length; i++) {
+        let priorPath = priorBuildInputNodeOutputPaths[i];
+        let currentPath = outputPaths[i];
 
         // if this output path is different from last builds or
         // if we cannot symlink then clear and symlink/copy manually
-        var hasDifferentPath = priorPath !== currentPath;
-        var forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
+        let hasDifferentPath = priorPath !== currentPath;
+        let forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
 
         if (forceReSymlinking) {
           // avoid `rimraf.sync` for initial build

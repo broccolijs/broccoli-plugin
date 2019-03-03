@@ -16,12 +16,12 @@ function Plugin(inputNodes, options) {
   }
   this._annotation = options.annotation;
 
-  var label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '');
+  let label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '');
   if (!Array.isArray(inputNodes))
     throw new TypeError(
       label + ': Expected an array of input nodes (input trees), got ' + inputNodes
     );
-  for (var i = 0; i < inputNodes.length; i++) {
+  for (let i = 0; i < inputNodes.length; i++) {
     if (!isPossibleNode(inputNodes[i])) {
       throw new TypeError(
         label + ': Expected Broccoli node, got ' + inputNodes[i] + ' for inputNodes[' + i + ']'
@@ -64,7 +64,7 @@ Plugin.prototype.__broccoliGetInfo__ = function(builderFeatures) {
       'Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)'
     );
 
-  var nodeInfo = {
+  let nodeInfo = {
     nodeType: 'transform',
     inputNodes: this._inputNodes,
     setup: this._setup.bind(this),
@@ -148,12 +148,12 @@ Plugin.prototype.cleanup = function() {
 };
 
 Plugin.prototype._initializeReadCompat = function() {
-  var ReadCompat = require('./read_compat');
+  let ReadCompat = require('./read_compat');
   this._readCompat = new ReadCompat(this);
 };
 
 function isPossibleNode(node) {
-  var type = typeof node;
+  let type = typeof node;
 
   if (node === null) {
     return false;

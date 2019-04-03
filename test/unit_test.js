@@ -6,12 +6,9 @@ const chai = require('chai'),
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
-NoopPlugin.prototype = Object.create(Plugin.prototype);
-NoopPlugin.prototype.constructor = NoopPlugin;
-function NoopPlugin() {
-  Plugin.apply(this, arguments);
+class NoopPlugin extends Plugin {
+  build() {}
 }
-NoopPlugin.prototype.build = function() {};
 
 describe('unit tests', function() {
   it('produces correct toString result', function() {
@@ -23,26 +20,10 @@ describe('unit tests', function() {
   });
 
   describe('usage errors', function() {
-    it('requires the base constructor to be called (super)', function() {
-      TestPlugin.prototype = Object.create(Plugin.prototype);
-      TestPlugin.prototype.constructor = TestPlugin;
-      function TestPlugin() {
-        /* no Plugin.apply(this, arguments) here */
-      }
-      TestPlugin.prototype.build = function() {};
-
-      return expect(function() {
-        new TestPlugin().__broccoliGetInfo__();
-      }).to.throw(Error, /must call the superclass constructor/);
-    });
-
     it('validates inputNodes', function() {
-      TestPlugin.prototype = Object.create(Plugin.prototype);
-      TestPlugin.prototype.constructor = TestPlugin;
-      function TestPlugin() {
-        Plugin.apply(this, arguments);
+      class TestPlugin extends Plugin {
+        build() {}
       }
-      TestPlugin.prototype.build = function() {};
 
       expect(function() {
         new TestPlugin();
@@ -90,13 +71,11 @@ describe('unit tests', function() {
     it('disallows overriding read, cleanup, and rebuild', function() {
       let prohibitedNames = ['read', 'rebuild', 'cleanup'];
       for (let i = 0; i < prohibitedNames.length; i++) {
-        const BadPlugin = function BadPlugin() {
-          Plugin.apply(this, arguments);
-        };
-        BadPlugin.prototype = Object.create(Plugin.prototype);
-        BadPlugin.prototype.constructor = BadPlugin;
-        BadPlugin.prototype.build = function() {};
-        BadPlugin.prototype[prohibitedNames[i]] = function() {};
+        class BadPlugin extends Plugin {
+          build() {}
+        }
+
+        BadPlugin.prototype[prohibitedNames[i]] = () => {};
 
         expect(function() {
           new BadPlugin([]);
@@ -108,12 +87,6 @@ describe('unit tests', function() {
       expect(function() {
         new NoopPlugin('notAnArray');
       }).to.throw(/Expected an array/);
-    });
-
-    it('provides a helpful error message on missing `new`', function() {
-      expect(function() {
-        NoopPlugin([]);
-      }).to.throw(/Missing `new`/);
     });
   });
 

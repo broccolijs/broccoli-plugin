@@ -2,7 +2,6 @@
 
 class Plugin {
   constructor(inputNodes, options) {
-    if (!(this instanceof Plugin)) throw new TypeError('Missing `new` operator');
     // Remember current call stack (minus "Error" line)
     this._instantiationStack = new Error().stack.replace(/[^\n]*\n/, '');
 

@@ -1,6 +1,6 @@
 'use strict';
 
-class Plugin {
+module.exports = class Plugin {
   constructor(inputNodes, options) {
     // Remember current call stack (minus "Error" line)
     this._instantiationStack = new Error().stack.replace(/[^\n]*\n/, '');
@@ -149,7 +149,7 @@ class Plugin {
     let ReadCompat = require('./read_compat');
     this._readCompat = new ReadCompat(this);
   }
-}
+};
 
 function isPossibleNode(node) {
   let type = typeof node;
@@ -168,5 +168,3 @@ function isPossibleNode(node) {
     return false;
   }
 }
-
-module.exports = Plugin;

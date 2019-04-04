@@ -1,5 +1,29 @@
 'use strict';
 
+const broccoliFeatures = Object.freeze({
+  persistentOutputFlag: true,
+  sourceDirectories: true,
+  needsCacheFlag: true,
+});
+
+function isPossibleNode(node) {
+  let type = typeof node;
+
+  if (node === null) {
+    return false;
+  } else if (type === 'string') {
+    return true;
+  } else if (type === 'object' && typeof node.__broccoliGetInfo__ === 'function') {
+    // Broccoli 1.x+
+    return true;
+  } else if (type === 'object' && typeof node.read === 'function') {
+    // Broccoli / broccoli-builder <= 0.18
+    return true;
+  } else {
+    return false;
+  }
+}
+
 module.exports = class Plugin {
   constructor(inputNodes, options) {
     // Remember current call stack (minus "Error" line)
@@ -36,11 +60,7 @@ module.exports = class Plugin {
     this._checkOverrides();
 
     // For future extensibility, we version the API using feature flags
-    this.__broccoliFeatures__ = Object.freeze({
-      persistentOutputFlag: true,
-      sourceDirectories: true,
-      needsCacheFlag: true,
-    });
+    this.__broccoliFeatures__ = broccoliFeatures;
   }
 
   _checkOverrides() {
@@ -150,21 +170,3 @@ module.exports = class Plugin {
     this._readCompat = new ReadCompat(this);
   }
 };
-
-function isPossibleNode(node) {
-  let type = typeof node;
-
-  if (node === null) {
-    return false;
-  } else if (type === 'string') {
-    return true;
-  } else if (type === 'object' && typeof node.__broccoliGetInfo__ === 'function') {
-    // Broccoli 1.x+
-    return true;
-  } else if (type === 'object' && typeof node.read === 'function') {
-    // Broccoli / broccoli-builder <= 0.18
-    return true;
-  } else {
-    return false;
-  }
-}

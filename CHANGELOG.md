@@ -1,5 +1,10 @@
 # master
 
+# 2.0.0
+
+* [BREAKING] modernize code-base, use ES classes
+* [BREAKING] set a new node engine version support "node": "6.* || 8.* || >= 10.*"
+
 # 1.3.1
 
 * Update the validation for input nodes. Previously passing `[]` as an input

@@ -23,23 +23,17 @@ function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
   }
 }
 
-AnnotatingPlugin.prototype = Object.create(Plugin.prototype);
-AnnotatingPlugin.prototype.constructor = AnnotatingPlugin;
-function AnnotatingPlugin() {
-  Plugin.apply(this, arguments);
-}
-AnnotatingPlugin.prototype.build = function() {
-  for (let i = 0; i < this.inputPaths.length; i++) {
-    copyFilesWithAnnotation(i, this.inputPaths[i], this.outputPath);
+class AnnotatingPlugin extends Plugin {
+  build() {
+    for (let i = 0; i < this.inputPaths.length; i++) {
+      copyFilesWithAnnotation(i, this.inputPaths[i], this.outputPath);
+    }
   }
-};
-
-NoopPlugin.prototype = Object.create(Plugin.prototype);
-NoopPlugin.prototype.constructor = NoopPlugin;
-function NoopPlugin() {
-  Plugin.apply(this, arguments);
 }
-NoopPlugin.prototype.build = function() {};
+
+class NoopPlugin extends Plugin {
+  build() {}
+}
 
 describe('integration test', function() {
   let node1, node2;
@@ -154,17 +148,13 @@ describe('integration test', function() {
         quickTemp.remove(this, 'outputPath');
       };
 
-      function InputPathTracker() {
-        Plugin.apply(this, arguments);
+      class InputPathTracker extends Plugin {
+        build() {
+          inputPaths.push(this.inputPaths[0]);
+
+          return AnnotatingPlugin.prototype.build.apply(this, arguments);
+        }
       }
-      InputPathTracker.prototype = Object.create(AnnotatingPlugin.prototype);
-      InputPathTracker.prototype.constructor = InputPathTracker;
-
-      InputPathTracker.prototype.build = function() {
-        inputPaths.push(this.inputPaths[0]);
-
-        return AnnotatingPlugin.prototype.build.apply(this, arguments);
-      };
 
       function isConsistent(inputNode) {
         builder = new Builder_0_16(inputNode);
@@ -269,21 +259,17 @@ describe('integration test', function() {
       });
 
       describe('persistent output', function() {
-        BuildOnce.prototype = Object.create(Plugin.prototype);
-        BuildOnce.prototype.constructor = BuildOnce;
-        function BuildOnce(options) {
-          Plugin.call(this, [], options);
+        class BuildOnce extends Plugin {
+          build() {
+            if (!this.builtOnce) {
+              this.builtOnce = true;
+              fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
+            }
+          }
         }
 
-        BuildOnce.prototype.build = function() {
-          if (!this.builtOnce) {
-            this.builtOnce = true;
-            fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
-          }
-        };
-
         function isPersistent(options) {
-          let builder = new Builder(new BuildOnce(options));
+          let builder = new Builder(new BuildOnce([], options));
           function buildAndCheckExistence() {
             return build(builder).then(function(outputPath) {
               return fs.existsSync(path.join(outputPath, 'foo.txt'));

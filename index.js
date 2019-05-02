@@ -4,6 +4,7 @@ const broccoliFeatures = Object.freeze({
   persistentOutputFlag: true,
   sourceDirectories: true,
   needsCacheFlag: true,
+  memoizeFlag: true,
 });
 
 function isPossibleNode(node) {
@@ -56,6 +57,11 @@ module.exports = class Plugin {
     this._inputNodes = inputNodes;
     this._persistentOutput = !!options.persistentOutput;
     this._needsCache = options.needsCache != null ? !!options.needsCache : true;
+    this._memoize = false;
+
+    if (options.memoize != null) {
+      this._memoize = options.memoize === 'custom' ? 'custom': true;
+    }
 
     this._checkOverrides();
 
@@ -66,6 +72,9 @@ module.exports = class Plugin {
   _checkOverrides() {
     if (typeof this.rebuild === 'function') {
       throw new Error('For compatibility, plugins must not define a plugin.rebuild() function');
+    }
+    if (typeof this.revised === 'function') {
+      throw new Error('For compatibility, plugins must not define a plugin.revised() function');
     }
     if (this.read !== Plugin.prototype.read) {
       throw new Error('For compatibility, plugins must not define a plugin.read() function');
@@ -93,12 +102,17 @@ module.exports = class Plugin {
       annotation: this._annotation,
       persistentOutput: this._persistentOutput,
       needsCache: this._needsCache,
+      memoize: this._memoize,
     };
 
     // Go backwards in time, removing properties from nodeInfo if they are not
     // supported by the builder. Add new features at the top.
     if (!this.builderFeatures.needsCacheFlag) {
       delete nodeInfo.needsCache;
+    }
+
+    if (!this.builderFeatures.memoizeFlag) {
+      delete nodeInfo.memoize;
     }
 
     return nodeInfo;

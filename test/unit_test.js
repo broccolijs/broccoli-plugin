@@ -69,7 +69,7 @@ describe('unit tests', function() {
     });
 
     it('disallows overriding read, cleanup, and rebuild', function() {
-      let prohibitedNames = ['read', 'rebuild', 'cleanup'];
+      let prohibitedNames = ['read', 'rebuild', 'cleanup', 'revised'];
       for (let i = 0; i < prohibitedNames.length; i++) {
         class BadPlugin extends Plugin {
           build() {}
@@ -186,6 +186,28 @@ describe('unit tests', function() {
           'annotation',
           'persistentOutput',
           'needsCache',
+        ]);
+      });
+
+      it('4 feature flags', function() {
+        expect(
+          node.__broccoliGetInfo__({
+            persistentOutputFlag: true,
+            sourceDirectories: true,
+            needsCacheFlag: true,
+            memoizeFlag: true,
+          })
+        ).to.have.all.keys([
+          'nodeType',
+          'inputNodes',
+          'setup',
+          'getCallbackObject',
+          'instantiationStack',
+          'name',
+          'annotation',
+          'persistentOutput',
+          'needsCache',
+          'memoize'
         ]);
       });
     });

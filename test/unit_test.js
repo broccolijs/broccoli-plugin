@@ -207,7 +207,7 @@ describe('unit tests', function() {
           'annotation',
           'persistentOutput',
           'needsCache',
-          'memoize'
+          'memoize',
         ]);
       });
     });

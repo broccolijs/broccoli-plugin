@@ -60,7 +60,7 @@ module.exports = class Plugin {
     this._memoize = false;
 
     if (options.memoize != null) {
-      this._memoize = options.memoize === 'custom' ? 'custom': true;
+      this._memoize = options.memoize === 'custom' ? 'custom' : true;
     }
 
     this._checkOverrides();

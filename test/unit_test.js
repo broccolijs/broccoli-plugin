@@ -188,6 +188,28 @@ describe('unit tests', function() {
           'needsCache',
         ]);
       });
+
+      it('4 feature flags', function() {
+        expect(
+          node.__broccoliGetInfo__({
+            persistentOutputFlag: true,
+            sourceDirectories: true,
+            needsCacheFlag: true,
+            volatileFlag: true,
+          })
+        ).to.have.all.keys([
+          'nodeType',
+          'inputNodes',
+          'setup',
+          'getCallbackObject',
+          'instantiationStack',
+          'name',
+          'annotation',
+          'persistentOutput',
+          'needsCache',
+          'volatile',
+        ]);
+      });
     });
   });
 });

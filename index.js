@@ -4,6 +4,7 @@ const broccoliFeatures = Object.freeze({
   persistentOutputFlag: true,
   sourceDirectories: true,
   needsCacheFlag: true,
+  volatileFlag: true,
 });
 
 function isPossibleNode(node) {
@@ -56,6 +57,7 @@ module.exports = class Plugin {
     this._inputNodes = inputNodes;
     this._persistentOutput = !!options.persistentOutput;
     this._needsCache = options.needsCache != null ? !!options.needsCache : true;
+    this._volatile = !!options.volatile;
 
     this._checkOverrides();
 
@@ -93,12 +95,17 @@ module.exports = class Plugin {
       annotation: this._annotation,
       persistentOutput: this._persistentOutput,
       needsCache: this._needsCache,
+      volatile: this._volatile,
     };
 
     // Go backwards in time, removing properties from nodeInfo if they are not
     // supported by the builder. Add new features at the top.
     if (!this.builderFeatures.needsCacheFlag) {
       delete nodeInfo.needsCache;
+    }
+
+    if (!this.builderFeatures.volatileFlag) {
+      delete nodeInfo.volatile;
     }
 
     return nodeInfo;

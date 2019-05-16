@@ -69,7 +69,7 @@ describe('unit tests', function() {
     });
 
     it('disallows overriding read, cleanup, and rebuild', function() {
-      let prohibitedNames = ['read', 'rebuild', 'cleanup', 'revised'];
+      let prohibitedNames = ['read', 'rebuild', 'cleanup'];
       for (let i = 0; i < prohibitedNames.length; i++) {
         class BadPlugin extends Plugin {
           build() {}
@@ -195,7 +195,7 @@ describe('unit tests', function() {
             persistentOutputFlag: true,
             sourceDirectories: true,
             needsCacheFlag: true,
-            memoizeFlag: true,
+            volatileFlag: true,
           })
         ).to.have.all.keys([
           'nodeType',
@@ -207,7 +207,7 @@ describe('unit tests', function() {
           'annotation',
           'persistentOutput',
           'needsCache',
-          'memoize',
+          'volatile',
         ]);
       });
     });

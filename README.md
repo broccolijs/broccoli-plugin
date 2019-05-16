@@ -51,6 +51,8 @@ Call this base class constructor from your subclass constructor.
     * `needsCache` : If `true`, a cache directory is created automatically
       and the path is set at `cachePath`. If `false`, a cache directory is not created
       and `this.cachePath` is `undefined`. Defaults to `true`.
+    * `volatile` : If `true`, memoization will not be applied and the build method will
+      always be called regardless if the inputNodes have changed. Defaults to `false`.
 
 ### `Plugin.prototype.build()`
 

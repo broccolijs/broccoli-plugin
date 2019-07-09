@@ -1,4 +1,14 @@
-'use strict';
+import {
+  InputNode,
+  TransformNode,
+  TransformNodeInfo,
+  FeatureSet,
+  CallbackObject,
+} from 'broccoli-node-api';
+
+import { MapSeriersIterator, PluginOptions } from './interfaces';
+
+import ReadCompat from './read_compat';
 
 const BROCCOLI_FEATURES = Object.freeze({
   persistentOutputFlag: true,
@@ -9,17 +19,16 @@ const BROCCOLI_FEATURES = Object.freeze({
 
 const PATHS = new WeakMap();
 
-function isPossibleNode(node) {
-  let type = typeof node;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isPossibleNode(node: any): node is InputNode {
   if (node === null) {
     return false;
-  } else if (type === 'string') {
+  } else if (typeof node === 'string') {
     return true;
-  } else if (type === 'object' && typeof node.__broccoliGetInfo__ === 'function') {
+  } else if (typeof node === 'object' && typeof node.__broccoliGetInfo__ === 'function') {
     // Broccoli 1.x+
     return true;
-  } else if (type === 'object' && typeof node.read === 'function') {
+  } else if (typeof node === 'object' && typeof node.read === 'function') {
     // Broccoli / broccoli-builder <= 0.18
     return true;
   } else {
@@ -27,12 +36,41 @@ function isPossibleNode(node) {
   }
 }
 
-module.exports = class Plugin {
-  constructor(inputNodes, options) {
-    // Remember current call stack (minus "Error" line)
-    this._instantiationStack = new Error().stack.replace(/[^\n]*\n/, '');
+function _checkBuilderFeatures(builderFeatures: FeatureSet) {
+  if (
+    (typeof builderFeatures !== 'object' && builderFeatures !== null) ||
+    !builderFeatures.persistentOutputFlag ||
+    !builderFeatures.sourceDirectories
+  ) {
+    // No builder in the wild implements less than these.
+    throw new Error(
+      'BroccoliPlugin: Minimum builderFeatures not met: { persistentOutputFlag: true, sourceDirectories: true }'
+    );
+  }
+}
 
-    options = options || {};
+class Plugin implements TransformNode {
+  private _name: string;
+  private _annotation?: string;
+  private _baseConstructorCalled: boolean;
+  private _inputNodes: InputNode[];
+  private _persistentOutput: boolean;
+  private _needsCache: boolean;
+  private _volatile: boolean;
+  private _instantiationStack: string;
+  private _readCompatError?: Error;
+  private _readCompat?: ReadCompat | false;
+  private rebuild?: () => void;
+
+  __broccoliFeatures__: FeatureSet;
+  builderFeatures!: FeatureSet;
+  cachePath?: string;
+
+  constructor(inputNodes: InputNode[], options: PluginOptions = {}) {
+    // Remember current call stack (minus "Error" line)
+    let errorStack = '' + new Error().stack;
+    this._instantiationStack = errorStack.replace(/[^\n]*\n/, '');
+
     if (options.name != null) {
       this._name = options.name;
     } else if (this.constructor && this.constructor.name != null) {
@@ -67,7 +105,7 @@ module.exports = class Plugin {
     this.__broccoliFeatures__ = BROCCOLI_FEATURES;
   }
 
-  get inputPaths() {
+  get inputPaths(): string[] {
     if (!PATHS.has(this)) {
       throw new Error(
         'BroccoliPlugin: this.inputPaths is only accessible once the build has begun.'
@@ -77,7 +115,7 @@ module.exports = class Plugin {
     return PATHS.get(this).inputPaths;
   }
 
-  get outputPath() {
+  get outputPath(): string {
     if (!PATHS.has(this)) {
       throw new Error(
         'BroccoliPlugin: this.outputPath is only accessible once the build has begun.'
@@ -100,15 +138,18 @@ module.exports = class Plugin {
   }
 
   // The Broccoli builder calls plugin.__broccoliGetInfo__
-  __broccoliGetInfo__(builderFeatures = { persistentOutputFlag: true, sourceDirectories: true }) {
+  __broccoliGetInfo__(
+    builderFeatures: FeatureSet = { persistentOutputFlag: true, sourceDirectories: true }
+  ): TransformNodeInfo {
     _checkBuilderFeatures(builderFeatures);
 
-    if (!this._baseConstructorCalled)
+    if (!this._baseConstructorCalled) {
       throw new Error(
         'Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)'
       );
+    }
 
-    let nodeInfo = {
+    let nodeInfo: TransformNodeInfo = {
       nodeType: 'transform',
       inputNodes: this._inputNodes,
       setup: this._setup.bind(this),
@@ -134,7 +175,10 @@ module.exports = class Plugin {
     return nodeInfo;
   }
 
-  _setup(builderFeatures, options) {
+  private _setup(
+    builderFeatures: FeatureSet,
+    options: { inputPaths: string[]; outputPath: string; cachePath: string }
+  ) {
     PATHS.set(this, {
       inputPaths: options.inputPaths,
       outputPath: options.outputPath,
@@ -151,20 +195,41 @@ module.exports = class Plugin {
     return '[' + this._name + (this._annotation != null ? ': ' + this._annotation : '') + ']';
   }
 
-  // Return obj on which the builder will call obj.build() repeatedly
-  //
-  // This indirection allows subclasses like broccoli-caching-writer to hook
-  // into calls from the builder, by returning { build: someFunction }
-  getCallbackObject() {
+  /**
+   * Return the object on which Broccoli will call obj.build(). Called once after instantiation. By default, returns this. Plugins do not usually need to
+   * override this, but it can be useful for base classes that other plugins in turn derive from, such as broccoli-caching-writer.
+   *
+   * For example, to intercept .build() calls, you might return { build: this.buildWrapper.bind(this) }. Or, to hand off the plugin implementation to a
+   * completely separate object: return new MyPluginWorker(this.inputPaths, this.outputPath, this.cachePath), where MyPluginWorker provides a .build method.
+   */
+  getCallbackObject(): CallbackObject {
     return this;
   }
 
-  build() {
+  /**
+   * Override this method in your subclass. It will be called on each (re-)build.
+   *
+   * This function will typically access the following read-only properties:
+   *  this.inputPaths: An array of paths on disk corresponding to each node in inputNodes. Your plugin will read files from these paths.
+   *  this.outputPath: The path on disk corresponding to this plugin instance (this node). Your plugin will write files to this path. This directory is emptied by Broccoli before each build, unless the persistentOutput options is true.
+   *  this.cachePath: The path on disk to an auxiliary cache directory. Use this to store files that you want preserved between builds. This directory will only be deleted when Broccoli exits. If a cache directory is not needed, set needsCache to false when calling broccoli-plugin constructor.
+   *
+   * All paths stay the same between builds.
+   * To perform asynchronous work, return a promise. The promise's eventual value is ignored (typically null).
+   * To report a compile error, throw it or return a rejected promise.
+   *
+   * To help with displaying clear error messages for build errors, error objects may have the following optional properties in addition to the standard message property:
+   *  file: Path of the file in which the error occurred, relative to one of the inputPaths directories
+   *  treeDir: The path that file is relative to. Must be an element of this.inputPaths. (The name treeDir is for historical reasons.)
+   *  line: Line in which the error occurred (one-indexed)
+   *  column: Column in which the error occurred (zero-indexed)
+   */
+  build(): Promise<void> {
     throw new Error('Plugin subclasses must implement a .build() function');
   }
 
   // Compatibility code so plugins can run on old, .read-based Broccoli:
-  read(readTree) {
+  read(readTree: MapSeriersIterator<InputNode>) {
     if (this._readCompat == null) {
       try {
         this._initializeReadCompat(); // call this.__broccoliGetInfo__()
@@ -178,28 +243,18 @@ module.exports = class Plugin {
 
     if (this._readCompatError != null) throw this._readCompatError;
 
-    return this._readCompat.read(readTree);
+    if (this._readCompat) {
+      return this._readCompat.read(readTree);
+    }
   }
 
   cleanup() {
     if (this._readCompat) return this._readCompat.cleanup();
   }
 
-  _initializeReadCompat() {
-    let ReadCompat = require('./read_compat');
+  private _initializeReadCompat() {
     this._readCompat = new ReadCompat(this);
   }
-};
-
-function _checkBuilderFeatures(builderFeatures) {
-  if (
-    (typeof builderFeatures !== 'object' && builderFeatures !== null) ||
-    !builderFeatures.persistentOutputFlag ||
-    !builderFeatures.sourceDirectories
-  ) {
-    // No builder in the wild implements less than these.
-    throw new Error(
-      'BroccoliPlugin: Minimum builderFeatures not met: { persistentOutputFlag: true, sourceDirectories: true }'
-    );
-  }
 }
+
+export = Plugin;

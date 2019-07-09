@@ -1,6 +1,4 @@
-'use strict';
-
-const Plugin = require('../index');
+const Plugin = require('../dist/index');
 const chai = require('chai'),
   expect = chai.expect;
 const chaiAsPromised = require('chai-as-promised');

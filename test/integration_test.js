@@ -1,11 +1,9 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 const RSVP = require('rsvp');
 const fixturify = require('fixturify');
 const Fixturify = require('broccoli-fixturify');
-const Plugin = require('../index');
+const Plugin = require('../dist/index');
 const chai = require('chai'),
   expect = chai.expect;
 const chaiAsPromised = require('chai-as-promised');

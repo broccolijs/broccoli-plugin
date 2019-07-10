@@ -1,4 +1,6 @@
-.jshint*
+/.eslintignore
+/.eslintrc.js
+/.prettier.config.js
 /.npmignore
 /.travis.yml
 /appveyor.yml

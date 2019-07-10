@@ -88,6 +88,35 @@ describe('unit tests', function() {
         new NoopPlugin('notAnArray');
       }).to.throw(/Expected an array/);
     });
+
+    it('throws runtime exceptions if inputPaths/outputPath are accessed prematurily', function() {
+      expect(function() {
+        new class extends Plugin {
+          constructor(...args) {
+            super(...args);
+            this.inputPaths;
+          }
+        }([]);
+      }).to.throw(/BroccoliPlugin: this.inputPaths is only accessible once the build has begun./);
+
+      expect(function() {
+        new class extends Plugin {
+          constructor(...args) {
+            super(...args);
+            this.outputPath;
+          }
+        }([]);
+      }).to.throw(/BroccoliPlugin: this.outputPath is only accessible once the build has begun./);
+
+      class Other extends Plugin {}
+      const subject = new Other([]);
+      expect(() => subject.inputPaths).to.throw(
+        /BroccoliPlugin: this.inputPaths is only accessible once the build has begun./
+      );
+      expect(() => subject.outputPath).to.throw(
+        /BroccoliPlugin: this.outputPath is only accessible once the build has begun./
+      );
+    });
   });
 
   describe('__broccoliGetInfo__', function() {

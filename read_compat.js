@@ -8,11 +8,19 @@ const rimraf = require('rimraf');
 const symlinkOrCopy = require('symlink-or-copy');
 const symlinkOrCopySync = symlinkOrCopy.sync;
 
+const READ_COMPAT_FEATURES = Object.freeze({
+  // these two features are supported by the old builders which still utilize read()
+  persistentOutputFlag: true,
+  sourceDirectories: true,
+  // ReadCompat provides this capability as the builder relying on ReadCompat may not
+  needsCacheFlag: true,
+});
+
 // Mimic how a Broccoli builder would call a plugin, using quickTemp to create
 // directories
 module.exports = ReadCompat;
 function ReadCompat(plugin) {
-  this.pluginInterface = plugin.__broccoliGetInfo__();
+  this.pluginInterface = plugin.__broccoliGetInfo__(READ_COMPAT_FEATURES);
 
   quickTemp.makeOrReuse(this, 'outputPath', this.pluginInterface.name);
 
@@ -36,7 +44,7 @@ function ReadCompat(plugin) {
     }
   }
 
-  this.pluginInterface.setup(null, {
+  this.pluginInterface.setup(READ_COMPAT_FEATURES, {
     inputPaths: this.inputPaths,
     outputPath: this.outputPath,
     cachePath: this.cachePath,

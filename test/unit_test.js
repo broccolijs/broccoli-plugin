@@ -145,8 +145,9 @@ describe('unit tests', function() {
         );
       });
 
-      it('returns a plugin interface when no feature flags are given', function() {
+      it('defaults to the default featureset if no features are provided', function() {
         let node = new NoopPlugin([]);
+
         expectBasicInterface(node.__broccoliGetInfo__());
       });
 
@@ -155,7 +156,7 @@ describe('unit tests', function() {
         expect(function() {
           // Pass empty features object, rather than missing (= default) argument
           node.__broccoliGetInfo__({});
-        }).to.throw(/Minimum builderFeatures required/);
+        }).to.throw(/Minimum builderFeatures not met/);
       });
     });
 
@@ -165,8 +166,25 @@ describe('unit tests', function() {
           needsCache: false,
         });
 
-        let pluginInterface = node.__broccoliGetInfo__();
-        expect(pluginInterface).to.have.property('needsCache', false);
+        {
+          // legacy builder
+          let pluginInterface = node.__broccoliGetInfo__({
+            persistentOutputFlag: true,
+            sourceDirectories: true,
+          });
+          expect(pluginInterface).to.not.have.property('needsCache');
+        }
+
+        {
+          // normal modern builder
+          let pluginInterface = node.__broccoliGetInfo__({
+            persistentOutputFlag: true,
+            sourceDirectories: true,
+            needsCacheFlag: true,
+          });
+
+          expect(pluginInterface).to.have.property('needsCache', false);
+        }
       });
     });
 

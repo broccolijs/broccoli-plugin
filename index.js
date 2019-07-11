@@ -6,6 +6,7 @@ const broccoliFeatures = Object.freeze({
   needsCacheFlag: true,
   volatileFlag: true,
 });
+const PATHS = new WeakMap();
 
 function isPossibleNode(node) {
   let type = typeof node;
@@ -63,6 +64,26 @@ module.exports = class Plugin {
 
     // For future extensibility, we version the API using feature flags
     this.__broccoliFeatures__ = broccoliFeatures;
+  }
+
+  get inputPaths() {
+    if (!PATHS.has(this)) {
+      throw new Error(
+        'BroccoliPlugin: this.inputPaths is only accessible once the build has begun.'
+      );
+    }
+
+    return PATHS.get(this).inputPaths;
+  }
+
+  get outputPath() {
+    if (!PATHS.has(this)) {
+      throw new Error(
+        'BroccoliPlugin: this.outputPath is only accessible once the build has begun.'
+      );
+    }
+
+    return PATHS.get(this).outputPath;
   }
 
   _checkOverrides() {
@@ -125,8 +146,12 @@ module.exports = class Plugin {
   _setup(builderFeatures, options) {
     builderFeatures = this._checkBuilderFeatures(builderFeatures);
     this._builderFeatures = builderFeatures;
-    this.inputPaths = options.inputPaths;
-    this.outputPath = options.outputPath;
+
+    PATHS.set(this, {
+      inputPaths: options.inputPaths,
+      outputPath: options.outputPath,
+    });
+
     if (!this.builderFeatures.needsCacheFlag) {
       this.cachePath = this._needsCache ? options.cachePath : undefined;
     } else {

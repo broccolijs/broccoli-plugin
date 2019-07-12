@@ -1,11 +1,12 @@
 'use strict';
 
-const broccoliFeatures = Object.freeze({
+const BROCCOLI_FEATURES = Object.freeze({
   persistentOutputFlag: true,
   sourceDirectories: true,
   needsCacheFlag: true,
   volatileFlag: true,
 });
+
 const PATHS = new WeakMap();
 
 function isPossibleNode(node) {
@@ -63,7 +64,7 @@ module.exports = class Plugin {
     this._checkOverrides();
 
     // For future extensibility, we version the API using feature flags
-    this.__broccoliFeatures__ = broccoliFeatures;
+    this.__broccoliFeatures__ = BROCCOLI_FEATURES;
   }
 
   get inputPaths() {
@@ -99,8 +100,9 @@ module.exports = class Plugin {
   }
 
   // The Broccoli builder calls plugin.__broccoliGetInfo__
-  __broccoliGetInfo__(builderFeatures) {
-    this.builderFeatures = this._checkBuilderFeatures(builderFeatures);
+  __broccoliGetInfo__(builderFeatures = { persistentOutputFlag: true, sourceDirectories: true }) {
+    _checkBuilderFeatures(builderFeatures);
+
     if (!this._baseConstructorCalled)
       throw new Error(
         'Plugin subclasses must call the superclass constructor: Plugin.call(this, inputNodes)'
@@ -121,38 +123,24 @@ module.exports = class Plugin {
 
     // Go backwards in time, removing properties from nodeInfo if they are not
     // supported by the builder. Add new features at the top.
-    if (!this.builderFeatures.needsCacheFlag) {
+    if (!builderFeatures.needsCacheFlag) {
       delete nodeInfo.needsCache;
     }
 
-    if (!this.builderFeatures.volatileFlag) {
+    if (!builderFeatures.volatileFlag) {
       delete nodeInfo.volatile;
     }
 
     return nodeInfo;
   }
 
-  _checkBuilderFeatures(builderFeatures) {
-    if (builderFeatures == null) builderFeatures = this.__broccoliFeatures__;
-    if (!builderFeatures.persistentOutputFlag || !builderFeatures.sourceDirectories) {
-      // No builder in the wild implements less than these.
-      throw new Error(
-        'Minimum builderFeatures required: { persistentOutputFlag: true, sourceDirectories: true }'
-      );
-    }
-    return builderFeatures;
-  }
-
   _setup(builderFeatures, options) {
-    builderFeatures = this._checkBuilderFeatures(builderFeatures);
-    this._builderFeatures = builderFeatures;
-
     PATHS.set(this, {
       inputPaths: options.inputPaths,
       outputPath: options.outputPath,
     });
 
-    if (!this.builderFeatures.needsCacheFlag) {
+    if (!builderFeatures.needsCacheFlag) {
       this.cachePath = this._needsCache ? options.cachePath : undefined;
     } else {
       this.cachePath = options.cachePath;
@@ -202,3 +190,16 @@ module.exports = class Plugin {
     this._readCompat = new ReadCompat(this);
   }
 };
+
+function _checkBuilderFeatures(builderFeatures) {
+  if (
+    (typeof builderFeatures !== 'object' && builderFeatures !== null) ||
+    !builderFeatures.persistentOutputFlag ||
+    !builderFeatures.sourceDirectories
+  ) {
+    // No builder in the wild implements less than these.
+    throw new Error(
+      'BroccoliPlugin: Minimum builderFeatures not met: { persistentOutputFlag: true, sourceDirectories: true }'
+    );
+  }
+}

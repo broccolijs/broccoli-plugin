@@ -26,8 +26,7 @@
     "promise-map-series": "^0.2.1",
     "quick-temp": "^0.1.3",
     "rimraf": "^2.3.4",
-    "symlink-or-copy": "^1.1.8",
-    "typescript": "^3.5.3"
+    "symlink-or-copy": "^1.1.8"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
@@ -51,7 +50,8 @@
     "multidep": "^2.0.0",
     "prettier": "^1.16.4",
     "pretty-quick": "^1.11.1",
-    "rsvp": "^4.8.4"
+    "rsvp": "^4.8.4",
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": "8.* || 10.* || >= 12.*"

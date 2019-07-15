@@ -15,7 +15,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "clean": "tsc -b --clean",
+    "clean": "rm -rf dist",
     "lint": "eslint *.js test/**/*.js src/**/*.ts",
     "prepare": "yarn build",
     "pretest": "multidep test/multidep.json",

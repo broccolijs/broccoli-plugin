@@ -19,7 +19,8 @@
     "lint": "eslint *.js test/**/*.js src/**/*.ts",
     "prepare": "yarn build",
     "pretest": "multidep test/multidep.json",
-    "test": "yarn build && mocha"
+    "test": "yarn build && mocha",
+    "watch": "tsc --watch"
   },
   "dependencies": {
     "broccoli-node-api": "^1.5.0",

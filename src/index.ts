@@ -6,7 +6,7 @@ import {
   CallbackObject,
 } from 'broccoli-node-api';
 
-import { MapSeriersIterator, PluginOptions } from './interfaces';
+import { MapSeriesIterator, PluginOptions } from './interfaces';
 
 import ReadCompat from './read_compat';
 
@@ -64,6 +64,13 @@ class Plugin implements TransformNode {
 
   __broccoliFeatures__: FeatureSet;
   builderFeatures!: FeatureSet;
+
+  /**
+   * The path on disk to an auxiliary cache directory.
+   * Use this to store files that you want preserved between builds.
+   * This directory will only be deleted when Broccoli exits. If a cache directory
+   * is not needed, set needsCache to false when calling broccoli-plugin constructor.
+   */
   cachePath?: string;
 
   constructor(inputNodes: InputNode[], options: PluginOptions = {}) {
@@ -105,6 +112,10 @@ class Plugin implements TransformNode {
     this.__broccoliFeatures__ = BROCCOLI_FEATURES;
   }
 
+  /**
+   * An array of paths on disk corresponding to each node in inputNodes.
+   * Your plugin will read files from these paths.
+   */
   get inputPaths(): string[] {
     if (!PATHS.has(this)) {
       throw new Error(
@@ -115,6 +126,10 @@ class Plugin implements TransformNode {
     return PATHS.get(this).inputPaths;
   }
 
+  /**
+   * The path on disk corresponding to this plugin instance (this node).
+   * Your plugin will write files to this path. This directory is emptied by Broccoli before each build, unless the persistentOutput options is true.
+   */
   get outputPath(): string {
     if (!PATHS.has(this)) {
       throw new Error(
@@ -125,7 +140,7 @@ class Plugin implements TransformNode {
     return PATHS.get(this).outputPath;
   }
 
-  _checkOverrides() {
+  private _checkOverrides() {
     if (typeof this.rebuild === 'function') {
       throw new Error('For compatibility, plugins must not define a plugin.rebuild() function');
     }
@@ -196,11 +211,11 @@ class Plugin implements TransformNode {
   }
 
   /**
-   * Return the object on which Broccoli will call obj.build(). Called once after instantiation. By default, returns this. Plugins do not usually need to
-   * override this, but it can be useful for base classes that other plugins in turn derive from, such as broccoli-caching-writer.
+   * Return the object on which Broccoli will call obj.build(). Called once after instantiation.
+   * By default, returns this. Plugins do not usually need to override this, but it can be useful
+   * for base classes that other plugins in turn derive from, such as broccoli-caching-writer.
    *
-   * For example, to intercept .build() calls, you might return { build: this.buildWrapper.bind(this) }. Or, to hand off the plugin implementation to a
-   * completely separate object: return new MyPluginWorker(this.inputPaths, this.outputPath, this.cachePath), where MyPluginWorker provides a .build method.
+   * @returns [[CallbackObject]]
    */
   getCallbackObject(): CallbackObject {
     return this;
@@ -229,7 +244,7 @@ class Plugin implements TransformNode {
   }
 
   // Compatibility code so plugins can run on old, .read-based Broccoli:
-  read(readTree: MapSeriersIterator<InputNode>) {
+  read(readTree: MapSeriesIterator<InputNode>) {
     if (this._readCompat == null) {
       try {
         this._initializeReadCompat(); // call this.__broccoliGetInfo__()

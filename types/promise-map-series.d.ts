@@ -1,8 +1,8 @@
-import { MapSeriersIterator } from '../src/interfaces';
+import { MapSeriesIterator } from '../src/interfaces';
 
 declare function mapSeries<T>(
   array: T[],
-  interator: MapSeriersIterator<T>,
+  interator: MapSeriesIterator<T>,
   thisArg?: any
 ): Promise<T[]>;
 

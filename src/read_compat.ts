@@ -8,7 +8,7 @@ import symlinkOrCopy = require('symlink-or-copy');
 const symlinkOrCopySync = symlinkOrCopy.sync;
 
 import { InputNode, TransformNodeInfo, CallbackObject } from 'broccoli-node-api';
-import { MapSeriersIterator } from './interfaces';
+import { MapSeriesIterator } from './interfaces';
 
 interface PluginWithDescription extends Plugin {
   description?: string;
@@ -78,7 +78,7 @@ export default class ReadCompat {
     }
   }
 
-  read(readTree: MapSeriersIterator<InputNode>) {
+  read(readTree: MapSeriesIterator<InputNode>) {
     if (!this.pluginInterface.persistentOutput) {
       rimraf.sync(this.outputPath);
       fs.mkdirSync(this.outputPath);

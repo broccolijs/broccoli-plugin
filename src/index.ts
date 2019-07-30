@@ -239,7 +239,7 @@ class Plugin implements TransformNode {
    *  line: Line in which the error occurred (one-indexed)
    *  column: Column in which the error occurred (zero-indexed)
    */
-  build(): Promise<void> {
+  build(): Promise<void> | void {
     throw new Error('Plugin subclasses must implement a .build() function');
   }
 

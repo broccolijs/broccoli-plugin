@@ -210,10 +210,10 @@ broccoli-fixturify@^0.3.0:
     broccoli-plugin "^1.2.0"
     fixturify "~0.3.0"
 
-broccoli-node-api@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/broccoli-node-api/-/broccoli-node-api-1.5.0.tgz#03fc56019e997a913ffc14bc87bdb2e6a335d1cf"
-  integrity sha512-JxYSgORvdeec5g4Hw2TRBuTQlJLUDlQHbUINrdrGVUZ9tkb+YqQJ351ye7O1f9Ig24qxuVyIdPHkVOVNgCs9sw==
+broccoli-node-api@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/broccoli-node-api/-/broccoli-node-api-1.6.0.tgz#34914e3cc45cce1a0dbaa00db998e931b8440de3"
+  integrity sha512-oEQo/nLs3Zt0gCEKGY+o9hguLZNeFzYVV+0ku8hzyjSi5NPSnocWm4SwS3vSph0pbcUsrTWFD/FM3A0jsjpeLg==
 
 broccoli-plugin@^1.2.0:
   version "1.3.0"

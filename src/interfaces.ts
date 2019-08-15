@@ -24,6 +24,12 @@ export interface PluginOptions {
    * If true, memoization will not be applied and the build method will always be called regardless if the inputNodes have changed. Defaults to false.
    */
   volatile?: boolean;
+
+  /**
+   * If true, a change object will be passed to the build method which contains
+   * information about which input has changed since the last build. Defaults to false.
+   */
+  trackInputChanges?: boolean;
 }
 
 export type MapSeriesIterator<T> = (item: T, index: number, array: T[]) => Promise<T> | T;

@@ -255,6 +255,30 @@ describe('unit tests', function() {
           'volatile',
         ]);
       });
+
+      it('5 feature flags', function() {
+        expect(
+          node.__broccoliGetInfo__({
+            persistentOutputFlag: true,
+            sourceDirectories: true,
+            needsCacheFlag: true,
+            volatileFlag: true,
+            trackInputChangesFlag: true,
+          })
+        ).to.have.all.keys([
+          'nodeType',
+          'inputNodes',
+          'setup',
+          'getCallbackObject',
+          'instantiationStack',
+          'name',
+          'annotation',
+          'persistentOutput',
+          'needsCache',
+          'volatile',
+          'trackInputChanges',
+        ]);
+      });
     });
   });
 });

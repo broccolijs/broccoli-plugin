@@ -1,6 +1,6 @@
 # master
 
-# 2.2.0
+# 3.0.0
 
 - Add `pluginInterface.trackInputChanges` and expose as `options.trackInputChanges`. This adds a change object
   that will be passed to the build method which contains information about which input has changed since the

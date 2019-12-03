@@ -21,11 +21,11 @@ class MyPlugin extends Plugin {
     // Silly example:
 
     // Read 'foo.txt' from the third input node
-    const input = fs.readFileSync(`${this.inputPaths[2]}/foo.txt`);
+    const input = this.input.readFileSync(`foo.txt`);
     const output = someCompiler(input);
 
     // Write to 'bar.txt' in this node's output
-    fs.writeFileSync(`${this.outputPath}/bar.txt`, output);
+    this.output.writeFileSync(`bar.txt`, output);
   }
 }
 ```

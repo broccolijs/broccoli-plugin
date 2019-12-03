@@ -258,19 +258,23 @@ describe('integration test', function() {
 
       describe('persistent output', function() {
         class BuildOnce extends Plugin {
+          constructor(node, options = {}) {
+            super(node, options);
+          }
           build() {
             if (!this.builtOnce) {
               this.builtOnce = true;
-              fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
+              this.output.writeFileSync('foo.txt', 'test');
             }
           }
         }
 
         function isPersistent(options) {
-          let builder = new Builder(new BuildOnce([], options));
+          let buildOnce = new BuildOnce([], options);
+          let builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
-            return build(builder).then(function(outputPath) {
-              return fs.existsSync(path.join(outputPath, 'foo.txt'));
+            return build(builder).then(function() {
+              return buildOnce.output.existsSync('foo.txt');
             });
           }
           return expect(buildAndCheckExistence())

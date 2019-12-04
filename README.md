@@ -124,44 +124,41 @@ may have the following optional properties in addition to the standard
 
 ### `Plugin.prototype.input`
 
-Plugin now provides a easy way to read from input path via `Plugin.prototype.input`. `input` provides file operation methods to read file, directory etc. `input` automatically attaches the corresponding inputpath to the filename. `input` searches the filename from left to right and the right most file takes the precedance if there are two files exists with same path from the root in different inputpaths.
-Ex:
+An api which enables a plugin to easily read from one or more input directories ergonomically and safely.
+
+_Note: We recommend users stop using this.inputPaths and instead rely on this.input. Our plan at present is to strongly consider deprecation of this.inputPaths once this.input has had time to bake._
+
+this.input's features:
+
+- `this.input` reads from the provided `inputPaths`. No path concatenation required.
+- `this.input` provides readOnly file system APIs. This prevents a plugin from erroneously mutating its inputs.
+- `this.input` provides a merged view of inputs, this allows every plugin to easily support multiple inputs, without the use of `broccoli-merge-trees` or implementing a complex merge algorithm.
+- `this.input.at(index)` provides access to each individual input if desired.
+
+Example:
 
 ```js
-/* test-1
-    |
-    -- a.txt
-    -- b.txt
+// old
+fs.readFileSync(this.inputPaths[0] + '/file.txt');
 
-    test-2
-    |
-    -- c.txt
-    -- d.txt
-    -- sub-dir
-        |
-        -- x.txt
-        -- y.txt
+// new (merged): Most Common
+this.input.readFileSync('file.txt');
 
-    test-3
-    |
-    -- e.txt
-    -- a.txt
- */
-const Plugin = require('broccoli-plugin');
+// new (indexed): For when you need to disambiguate between inputs.
+this.input.at(0).readFileSync('file.txt);
 
-class MyPlugin extends Plugin {
-  constructor(inputNodes, options = {}) {
-    super(inputNodes);
-  }
-
-  build() {
-    //below a.txt will the file from path `test-3/a.txt`
-    const input = this.input.readFileSync(`a.txt`);
-    // To access the file from a specific inputPath, ex: to access `this.inputPaths[0]`, we can use `at` method.
-    const content = this.input.at(0).readFileSync('a.txt');
-  }
-}
+// ReadOnly
+this.input.writeFileSync // throws error
 ```
+
+### List of Methods
+
+- readFileSync
+- existsSync
+- lstatSync
+- statSync
+- readdirSync
+- at
 
 Read more about `input` [here](https://github.com/SparshithNR/fs-merger#fsmergerfs)
 
@@ -169,25 +166,36 @@ Note: `input` will be available only after the `build` starts.
 
 ### `Plugin.prototype.output`
 
-Plugin now provides a easy way to write to the output path via `Plugin.prototype.output`. `output` provides file operation methods to write file, create/remove directory etc. It automatically attaches the outputpath to the filename.
+An api which enables a plugin to easily write to the output directory ergonomically and safely.
+
+_Note: We recommend users stop using this.outputPath and instead rely on this.output. Our plan at present is to strongly consider deprecation of this.outputPath once this.output has had time to bake._
+
+this.output's features:
+
+- `this.ouput` writes to the `outputPath`. No path concatenation required.
+- `this.output` provides read operations on the `outputPath`. No path concatenation required.
+
 Ex:
 
 ```js
-const Plugin = require('broccoli-plugin');
+// old
+fs.writeFileSync(this.outputPath + '/file.txt', 'text');
 
-class MyPlugin extends Plugin {
-  constructor(inputNodes, options = {}) {
-    super(inputNodes);
-  }
-
-  build() {
-    const input = this.input.readFileSync('a.txt');
-    const output = someCompiler(input);
-    // this.outputPath will be attched to the output file name.
-    this.output.writeFileSync('complied.txt');
-  }
-}
+// new
+this.output.writeFileSync('file.txt', 'text');
 ```
+
+### List of Methods
+
+- readFileSync
+- existsSync
+- lstatSync
+- readdirSync
+- statSync
+- writeFileSync
+- appendFileSync
+- rmdirSync
+- mkdirSync
 
 Read more about APIs present in `output` [here](https://github.com/SparshithNR/broccoli-output-wrapper#apis).
 

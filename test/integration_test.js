@@ -228,6 +228,69 @@ describe('integration test', function() {
     });
   });
 
+  describe('.input/.output functionality', function() {
+    let Builder = multidepRequire('broccoli', '0.16.9').Builder;
+    class FSFacadePlugin extends Plugin {
+      build() {
+        let content = this.input.readFileSync('foo.txt', 'utf-8');
+        this.output.writeFileSync('complied.txt', content);
+      }
+    }
+
+    it('reads file using this.input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.input.readFileSync('foo.txt', 'utf-8')).to.equal('foo contents');
+      });
+    });
+
+    it('reads file using this.input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.input.at(1).readFileSync('bar.txt', 'utf-8')).to.equal('bar contents');
+      });
+    });
+
+    it('writes file using this.output', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.output.readFileSync('complied.txt', 'utf-8')).to.equal('foo contents');
+      });
+    });
+
+    it('verify few operations we expect are present in input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        expect(typeof node.input.readFileSync == 'function').to.be.true;
+        expect(typeof node.input.readdirSync == 'function').to.be.true;
+        expect(typeof node.input.at == 'function').to.be.true;
+        expect(() => {
+          node.input.writeFileSync('read.md', 'test');
+        }).to.throw(/Operation writeFileSync is not allowed .*/);
+      });
+    });
+
+    it('verify few operations we expect are present in output', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        expect(typeof node.output.readFileSync == 'function').to.be.true;
+        expect(typeof node.output.readdirSync == 'function').to.be.true;
+        expect(typeof node.output.existSync == 'function').to.be.true;
+        expect(typeof node.output.writeFileSync == 'function').to.be.true;
+        expect(typeof node.output.rmdirSync == 'function').to.be.true;
+        expect(typeof node.output.mkdirSync == 'function').to.be.true;
+        expect(() => {
+          node.output.readFileMeta('test.txt');
+        }).to.throw(/Operation readFileMeta is not allowed .*/);
+      });
+    });
+  });
+
   multidepRequire.forEachVersion('broccoli', function(broccoliVersion, module) {
     let Builder = module.Builder;
 

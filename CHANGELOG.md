@@ -1,5 +1,9 @@
 # master
 
+# 3.1.0
+
+- Add `this.input` and `this.ouput` to broccoli-plugin instances, this aims to replace nearly all usage of `this.inputPaths` and `this.outputPath`. See the `Readme` for further details
+
 # 3.0.0
 
 - Add `pluginInterface.trackInputChanges` and expose as `options.trackInputChanges`. This adds a change object

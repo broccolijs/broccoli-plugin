@@ -121,3 +121,74 @@ may have the following optional properties in addition to the standard
   `this.inputPaths`. (The name `treeDir` is for historical reasons.)
 - `line`: Line in which the error occurred (one-indexed)
 - `column`: Column in which the error occurred (zero-indexed)
+
+### `Plugin.prototype.input`
+
+Plugin now provides a easy way to read from input path via `Plugin.prototype.input`. `input` provides file operation methods to read file, directory etc. `input` automatically attaches the corresponding inputpath to the filename. `input` searches the filename from left to right and the right most file takes the precedance if there are two files exists with same path from the root in different inputpaths.
+Ex:
+
+```js
+/* test-1
+    |
+    -- a.txt
+    -- b.txt
+
+    test-2
+    |
+    -- c.txt
+    -- d.txt
+    -- sub-dir
+        |
+        -- x.txt
+        -- y.txt
+
+    test-3
+    |
+    -- e.txt
+    -- a.txt
+ */
+const Plugin = require('broccoli-plugin');
+
+class MyPlugin extends Plugin {
+  constructor(inputNodes, options = {}) {
+    super(inputNodes);
+  }
+
+  build() {
+    //below a.txt will the file from path `test-3/a.txt`
+    const input = this.input.readFileSync(`a.txt`);
+    // To access the file from a specific inputPath, ex: to access `this.inputPaths[0]`, we can use `at` method.
+    const content = this.input.at(0).readFileSync('a.txt');
+  }
+}
+```
+
+Read more about `input` [here](https://github.com/SparshithNR/fs-merger#fsmergerfs)
+
+Note: `input` will be available only after the `build` starts.
+
+### `Plugin.prototype.output`
+
+Plugin now provides a easy way to write to the output path via `Plugin.prototype.output`. `output` provides file operation methods to write file, create/remove directory etc. It automatically attaches the outputpath to the filename.
+Ex:
+
+```js
+const Plugin = require('broccoli-plugin');
+
+class MyPlugin extends Plugin {
+  constructor(inputNodes, options = {}) {
+    super(inputNodes);
+  }
+
+  build() {
+    const input = this.input.readFileSync('a.txt');
+    const output = someCompiler(input);
+    // this.outputPath will be attched to the output file name.
+    this.output.writeFileSync('complied.txt');
+  }
+}
+```
+
+Read more about APIs present in `output` [here](https://github.com/SparshithNR/broccoli-output-wrapper#apis).
+
+Note: `output` will be available only after the `build` starts.

@@ -256,11 +256,47 @@ describe('integration test', function() {
         });
       });
 
-      describe('persistent output', function() {
+      describe('persistent fs', function() {
         class BuildOnce extends Plugin {
-          constructor(node, options = {}) {
-            super(node, options);
+          build() {
+            if (!this.builtOnce) {
+              this.builtOnce = true;
+              fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
+            }
           }
+        }
+
+        function isPersistent(options) {
+          let buildOnce = new BuildOnce([], options);
+          let builder = new Builder(buildOnce);
+          function buildAndCheckExistence() {
+            return build(builder).then(function() {
+              return buildOnce.output.existsSync('foo.txt');
+            });
+          }
+          return expect(buildAndCheckExistence())
+            .to.eventually.equal(true)
+            .then(buildAndCheckExistence)
+            .finally(function() {
+              builder.cleanup();
+            });
+        }
+
+        it('is not persistent by default', function() {
+          return expect(isPersistent({})).to.eventually.equal(false);
+        });
+
+        it('is not persistent when persistentOutput is false', function() {
+          return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
+        });
+
+        it('is persistent when persistentOutput is true', function() {
+          return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
+        });
+      });
+
+      describe('persistent InputOutput', function() {
+        class BuildOnce extends Plugin {
           build() {
             if (!this.builtOnce) {
               this.builtOnce = true;

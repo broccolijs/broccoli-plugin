@@ -228,6 +228,69 @@ describe('integration test', function() {
     });
   });
 
+  describe('.input/.output functionality', function() {
+    let Builder = multidepRequire('broccoli', '0.16.9').Builder;
+    class FSFacadePlugin extends Plugin {
+      build() {
+        let content = this.input.readFileSync('foo.txt', 'utf-8');
+        this.output.writeFileSync('complied.txt', content);
+      }
+    }
+
+    it('reads file using this.input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.input.readFileSync('foo.txt', 'utf-8')).to.equal('foo contents');
+      });
+    });
+
+    it('reads file using this.input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.input.at(1).readFileSync('bar.txt', 'utf-8')).to.equal('bar contents');
+      });
+    });
+
+    it('writes file using this.output', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        return expect(node.output.readFileSync('complied.txt', 'utf-8')).to.equal('foo contents');
+      });
+    });
+
+    it('verify few operations we expect are present in input', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        expect(typeof node.input.readFileSync == 'function').to.be.true;
+        expect(typeof node.input.readdirSync == 'function').to.be.true;
+        expect(typeof node.input.at == 'function').to.be.true;
+        expect(() => {
+          node.input.writeFileSync('read.md', 'test');
+        }).to.throw(/Operation writeFileSync is not allowed .*/);
+      });
+    });
+
+    it('verify few operations we expect are present in output', function() {
+      let node = new FSFacadePlugin([node1, node2]);
+      builder = new Builder(node);
+      return builder.build().then(function() {
+        expect(typeof node.output.readFileSync == 'function').to.be.true;
+        expect(typeof node.output.readdirSync == 'function').to.be.true;
+        expect(typeof node.output.existSync == 'function').to.be.true;
+        expect(typeof node.output.writeFileSync == 'function').to.be.true;
+        expect(typeof node.output.rmdirSync == 'function').to.be.true;
+        expect(typeof node.output.mkdirSync == 'function').to.be.true;
+        expect(() => {
+          node.output.readFileMeta('test.txt');
+        }).to.throw(/Operation readFileMeta is not allowed .*/);
+      });
+    });
+  });
+
   multidepRequire.forEachVersion('broccoli', function(broccoliVersion, module) {
     let Builder = module.Builder;
 
@@ -256,7 +319,7 @@ describe('integration test', function() {
         });
       });
 
-      describe('persistent output', function() {
+      describe('persistent fs', function() {
         class BuildOnce extends Plugin {
           build() {
             if (!this.builtOnce) {
@@ -267,10 +330,50 @@ describe('integration test', function() {
         }
 
         function isPersistent(options) {
-          let builder = new Builder(new BuildOnce([], options));
+          let buildOnce = new BuildOnce([], options);
+          let builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
-            return build(builder).then(function(outputPath) {
-              return fs.existsSync(path.join(outputPath, 'foo.txt'));
+            return build(builder).then(function() {
+              return buildOnce.output.existsSync('foo.txt');
+            });
+          }
+          return expect(buildAndCheckExistence())
+            .to.eventually.equal(true)
+            .then(buildAndCheckExistence)
+            .finally(function() {
+              builder.cleanup();
+            });
+        }
+
+        it('is not persistent by default', function() {
+          return expect(isPersistent({})).to.eventually.equal(false);
+        });
+
+        it('is not persistent when persistentOutput is false', function() {
+          return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
+        });
+
+        it('is persistent when persistentOutput is true', function() {
+          return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
+        });
+      });
+
+      describe('persistent InputOutput', function() {
+        class BuildOnce extends Plugin {
+          build() {
+            if (!this.builtOnce) {
+              this.builtOnce = true;
+              this.output.writeFileSync('foo.txt', 'test');
+            }
+          }
+        }
+
+        function isPersistent(options) {
+          let buildOnce = new BuildOnce([], options);
+          let builder = new Builder(buildOnce);
+          function buildAndCheckExistence() {
+            return build(builder).then(function() {
+              return buildOnce.output.existsSync('foo.txt');
             });
           }
           return expect(buildAndCheckExistence())

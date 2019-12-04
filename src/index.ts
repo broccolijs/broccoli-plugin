@@ -9,6 +9,9 @@ import {
 import { MapSeriesIterator, PluginOptions } from './interfaces';
 
 import ReadCompat from './read_compat';
+import { FSOutput } from 'broccoli-output-wrapper';
+import buildOutputWrapper = require('broccoli-output-wrapper');
+import FSMerger = require('fs-merger');
 
 const BROCCOLI_FEATURES = Object.freeze({
   persistentOutputFlag: true,
@@ -19,6 +22,7 @@ const BROCCOLI_FEATURES = Object.freeze({
 });
 
 const PATHS = new WeakMap();
+const FSFACADE = new WeakMap();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isPossibleNode(node: any): node is InputNode {
@@ -144,6 +148,22 @@ class Plugin implements TransformNode {
     return PATHS.get(this).outputPath;
   }
 
+  get input(): FSMerger.FS {
+    if (!FSFACADE.has(this)) {
+      throw new Error('BroccoliPlugin: this.input is only accessible once the build has begun.');
+    }
+
+    return FSFACADE.get(this).input;
+  }
+
+  get output(): FSOutput {
+    if (!FSFACADE.has(this)) {
+      throw new Error('BroccoliPlugin: this.output is only accessible once the build has begun.');
+    }
+
+    return FSFACADE.get(this).output;
+  }
+
   private _checkOverrides() {
     if (typeof this.rebuild === 'function') {
       throw new Error('For compatibility, plugins must not define a plugin.rebuild() function');
@@ -213,6 +233,11 @@ class Plugin implements TransformNode {
     } else {
       this.cachePath = options.cachePath;
     }
+
+    FSFACADE.set(this, {
+      input: new FSMerger(this._inputNodes).fs,
+      output: buildOutputWrapper(this),
+    });
   }
 
   toString() {

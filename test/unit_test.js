@@ -115,6 +115,35 @@ describe('unit tests', function() {
         /BroccoliPlugin: this.outputPath is only accessible once the build has begun./
       );
     });
+
+    it('throws runtime exceptions if input/output are accessed prematurily', function() {
+      expect(function() {
+        new class extends Plugin {
+          constructor(...args) {
+            super(...args);
+            this.input;
+          }
+        }([]);
+      }).to.throw(/BroccoliPlugin: this.input is only accessible once the build has begun./);
+
+      expect(function() {
+        new class extends Plugin {
+          constructor(...args) {
+            super(...args);
+            this.output;
+          }
+        }([]);
+      }).to.throw(/BroccoliPlugin: this.output is only accessible once the build has begun./);
+
+      class Other extends Plugin {}
+      const subject = new Other([]);
+      expect(() => subject.input).to.throw(
+        /BroccoliPlugin: this.input is only accessible once the build has begun./
+      );
+      expect(() => subject.output).to.throw(
+        /BroccoliPlugin: this.output is only accessible once the build has begun./
+      );
+    });
   });
 
   describe('__broccoliGetInfo__', function() {

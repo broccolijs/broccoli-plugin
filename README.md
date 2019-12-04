@@ -21,11 +21,11 @@ class MyPlugin extends Plugin {
     // Silly example:
 
     // Read 'foo.txt' from the third input node
-    const input = fs.readFileSync(`${this.inputPaths[2]}/foo.txt`);
+    const input = this.input.readFileSync(`foo.txt`);
     const output = someCompiler(input);
 
     // Write to 'bar.txt' in this node's output
-    fs.writeFileSync(`${this.outputPath}/bar.txt`, output);
+    this.output.writeFileSync(`bar.txt`, output);
   }
 }
 ```
@@ -121,3 +121,82 @@ may have the following optional properties in addition to the standard
   `this.inputPaths`. (The name `treeDir` is for historical reasons.)
 - `line`: Line in which the error occurred (one-indexed)
 - `column`: Column in which the error occurred (zero-indexed)
+
+### `Plugin.prototype.input`
+
+An api which enables a plugin to easily read from one or more input directories ergonomically and safely.
+
+_Note: We recommend users stop using this.inputPaths and instead rely on this.input. Our plan at present is to strongly consider deprecation of this.inputPaths once this.input has had time to bake._
+
+this.input's features:
+
+- `this.input` reads from the provided `inputPaths`. No path concatenation required.
+- `this.input` provides readOnly file system APIs. This prevents a plugin from erroneously mutating its inputs.
+- `this.input` provides a merged view of inputs, this allows every plugin to easily support multiple inputs, without the use of `broccoli-merge-trees` or implementing a complex merge algorithm.
+- `this.input.at(index)` provides access to each individual input if desired.
+
+Example:
+
+```js
+// old
+fs.readFileSync(this.inputPaths[0] + '/file.txt');
+
+// new (merged): Most Common
+this.input.readFileSync('file.txt');
+
+// new (indexed): For when you need to disambiguate between inputs.
+this.input.at(0).readFileSync('file.txt);
+
+// ReadOnly
+this.input.writeFileSync // throws error
+```
+
+### List of Methods
+
+- readFileSync
+- existsSync
+- lstatSync
+- statSync
+- readdirSync
+- at
+
+Read more about `input` [here](https://github.com/SparshithNR/fs-merger#fsmergerfs)
+
+Note: `input` will be available only after the `build` starts.
+
+### `Plugin.prototype.output`
+
+An api which enables a plugin to easily write to the output directory ergonomically and safely.
+
+_Note: We recommend users stop using this.outputPath and instead rely on this.output. Our plan at present is to strongly consider deprecation of this.outputPath once this.output has had time to bake._
+
+this.output's features:
+
+- `this.ouput` writes to the `outputPath`. No path concatenation required.
+- `this.output` provides read operations on the `outputPath`. No path concatenation required.
+
+Ex:
+
+```js
+// old
+fs.writeFileSync(this.outputPath + '/file.txt', 'text');
+
+// new
+this.output.writeFileSync('file.txt', 'text');
+```
+
+### List of Methods
+
+- readFileSync
+- existsSync
+- lstatSync
+- readdirSync
+- statSync
+- writeFileSync
+- appendFileSync
+- rmdirSync
+- mkdirSync
+
+Read more about APIs present in `output` [here](https://github.com/SparshithNR/broccoli-output-wrapper#apis).
+
+Note: `output` will be available only after the `build` starts.

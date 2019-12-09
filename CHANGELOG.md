@@ -1,6 +1,9 @@
 # master
 
+# 4.0.0
+
 - [BREAKING] Drop Node 8 support
+- [BREAKING] Upgrade broccoli-output-wrapper
 
 # 3.1.0
 

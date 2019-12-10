@@ -5,7 +5,9 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 class NoopPlugin extends Plugin {
-  build() {}
+  build() {
+    // no implementation
+  }
 }
 
 describe('unit tests', function() {
@@ -20,7 +22,9 @@ describe('unit tests', function() {
   describe('usage errors', function() {
     it('validates inputNodes', function() {
       class TestPlugin extends Plugin {
-        build() {}
+        build() {
+          // no implementation
+        }
       }
 
       expect(function() {
@@ -67,13 +71,17 @@ describe('unit tests', function() {
     });
 
     it('disallows overriding read, cleanup, and rebuild', function() {
-      let prohibitedNames = ['read', 'rebuild', 'cleanup'];
+      const prohibitedNames = ['read', 'rebuild', 'cleanup'];
       for (let i = 0; i < prohibitedNames.length; i++) {
         class BadPlugin extends Plugin {
-          build() {}
+          build() {
+            // empty function
+          }
         }
 
-        BadPlugin.prototype[prohibitedNames[i]] = () => {};
+        BadPlugin.prototype[prohibitedNames[i]] = () => {
+          /* empty function */
+        };
 
         expect(function() {
           new BadPlugin([]);
@@ -89,21 +97,21 @@ describe('unit tests', function() {
 
     it('throws runtime exceptions if inputPaths/outputPath are accessed prematurily', function() {
       expect(function() {
-        new class extends Plugin {
+        new (class extends Plugin {
           constructor(...args) {
             super(...args);
             this.inputPaths;
           }
-        }([]);
+        })([]);
       }).to.throw(/BroccoliPlugin: this.inputPaths is only accessible once the build has begun./);
 
       expect(function() {
-        new class extends Plugin {
+        new (class extends Plugin {
           constructor(...args) {
             super(...args);
             this.outputPath;
           }
-        }([]);
+        })([]);
       }).to.throw(/BroccoliPlugin: this.outputPath is only accessible once the build has begun./);
 
       class Other extends Plugin {}
@@ -118,21 +126,21 @@ describe('unit tests', function() {
 
     it('throws runtime exceptions if input/output are accessed prematurily', function() {
       expect(function() {
-        new class extends Plugin {
+        new (class extends Plugin {
           constructor(...args) {
             super(...args);
             this.input;
           }
-        }([]);
+        })([]);
       }).to.throw(/BroccoliPlugin: this.input is only accessible once the build has begun./);
 
       expect(function() {
-        new class extends Plugin {
+        new (class extends Plugin {
           constructor(...args) {
             super(...args);
             this.output;
           }
-        }([]);
+        })([]);
       }).to.throw(/BroccoliPlugin: this.output is only accessible once the build has begun./);
 
       class Other extends Plugin {}
@@ -163,7 +171,7 @@ describe('unit tests', function() {
       }
 
       it('returns a plugin interface with explicit feature flags', function() {
-        let node = new NoopPlugin([]);
+        const node = new NoopPlugin([]);
         expectBasicInterface(
           node.__broccoliGetInfo__({
             persistentOutputFlag: true,
@@ -173,13 +181,14 @@ describe('unit tests', function() {
       });
 
       it('defaults to the default featureset if no features are provided', function() {
-        let node = new NoopPlugin([]);
+        const node = new NoopPlugin([]);
 
         expectBasicInterface(node.__broccoliGetInfo__());
       });
 
       it('throws an error when not passed enough feature flags', function() {
-        let node = new NoopPlugin([]);
+        const node = new NoopPlugin([]);
+
         expect(function() {
           // Pass empty features object, rather than missing (= default) argument
           node.__broccoliGetInfo__({});
@@ -189,13 +198,13 @@ describe('unit tests', function() {
 
     describe('features', function() {
       it('sets needsCache if provided at instantiation`', function() {
-        let node = new NoopPlugin([], {
+        const node = new NoopPlugin([], {
           needsCache: false,
         });
 
         {
           // legacy builder
-          let pluginInterface = node.__broccoliGetInfo__({
+          const pluginInterface = node.__broccoliGetInfo__({
             persistentOutputFlag: true,
             sourceDirectories: true,
           });
@@ -204,7 +213,7 @@ describe('unit tests', function() {
 
         {
           // normal modern builder
-          let pluginInterface = node.__broccoliGetInfo__({
+          const pluginInterface = node.__broccoliGetInfo__({
             persistentOutputFlag: true,
             sourceDirectories: true,
             needsCacheFlag: true,
@@ -223,7 +232,7 @@ describe('unit tests', function() {
       // The main backwards compatiblity tests are not here but in the
       // integration test suite, which tests against all Broccoli versions.
 
-      let node = new NoopPlugin([]);
+      const node = new NoopPlugin([]);
 
       it('2 feature flags', function() {
         expect(

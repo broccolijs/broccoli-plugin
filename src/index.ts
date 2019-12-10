@@ -81,7 +81,7 @@ class Plugin implements TransformNode {
 
   constructor(inputNodes: InputNode[], options: PluginOptions = {}) {
     // Remember current call stack (minus "Error" line)
-    let errorStack = '' + new Error().stack;
+    const errorStack = '' + new Error().stack;
     this._instantiationStack = errorStack.replace(/[^\n]*\n/, '');
 
     if (options.name != null) {
@@ -93,7 +93,7 @@ class Plugin implements TransformNode {
     }
     this._annotation = options.annotation;
 
-    let label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '');
+    const label = this._name + (this._annotation != null ? ' (' + this._annotation + ')' : '');
     if (!Array.isArray(inputNodes))
       throw new TypeError(
         label + ': Expected an array of input nodes (input trees), got ' + inputNodes
@@ -188,7 +188,7 @@ class Plugin implements TransformNode {
       );
     }
 
-    let nodeInfo: TransformNodeInfo = {
+    const nodeInfo: TransformNodeInfo = {
       nodeType: 'transform',
       inputNodes: this._inputNodes,
       setup: this._setup.bind(this),

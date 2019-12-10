@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const RSVP = require('rsvp');
 const fixturify = require('fixturify');
 const Fixturify = require('broccoli-fixturify');
 const Plugin = require('../dist/index');
@@ -13,7 +12,7 @@ const quickTemp = require('quick-temp');
 const symlinkOrCopy = require('symlink-or-copy');
 
 function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
-  let files = fs.readdirSync(sourceDir);
+  const files = fs.readdirSync(sourceDir);
   for (let j = 0; j < files.length; j++) {
     let content = fs.readFileSync(path.join(sourceDir, files[j]));
     content += ' - from input node #' + sourceDirId;
@@ -30,7 +29,9 @@ class AnnotatingPlugin extends Plugin {
 }
 
 class NoopPlugin extends Plugin {
-  build() {}
+  build() {
+    // empty method
+  }
 }
 
 describe('integration test', function() {
@@ -45,17 +46,17 @@ describe('integration test', function() {
 
   afterEach(function() {
     if (builder) {
-      return RSVP.resolve(builder.cleanup()).then(function() {
+      return Promise.resolve(builder.cleanup()).then(function() {
         builder = null;
       });
     }
   });
 
   describe('.read compatibility code', function() {
-    let Builder_0_16 = multidepRequire('broccoli', '0.16.9').Builder;
+    const Builder_0_16 = multidepRequire('broccoli', '0.16.9').Builder;
 
     it('sets description', function() {
-      let node = new AnnotatingPlugin([], {
+      const node = new AnnotatingPlugin([], {
         name: 'SomePlugin',
         annotation: 'some annotation',
       });
@@ -66,14 +67,14 @@ describe('integration test', function() {
     });
 
     it('handles readCompat initialization errors', function() {
-      let node = new AnnotatingPlugin([]);
+      const node = new AnnotatingPlugin([]);
       let initializeReadCompatCalls = 0;
       node._initializeReadCompat = function() {
         // stub
         throw new Error('someError ' + ++initializeReadCompatCalls);
       };
       builder = new Builder_0_16(node);
-      return RSVP.Promise.resolve()
+      return Promise.resolve()
         .then(function() {
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1');
         })
@@ -93,7 +94,7 @@ describe('integration test', function() {
       });
 
       afterEach(function() {
-        symlinkOrCopy.setOptions({
+        symlinkOrCopy._setOptions({
           fs,
           isWindows: process.platform === 'win32',
           canSymlink: originalCanSymlink,
@@ -109,19 +110,16 @@ describe('integration test', function() {
         quickTemp.makeOrReuse(this, 'outputBasePath');
         this._buildCount = 0;
       }
-      UnstableOutputPathTree.prototype.read = function(readTree) {
-        let self = this;
+      UnstableOutputPathTree.prototype.read = async function(readTree) {
+        quickTemp.makeOrRemake(this, 'outputBasePath');
 
-        quickTemp.makeOrRemake(self, 'outputBasePath');
+        const inputTreesOutputPath = await readTree(this._inputTree);
+        const outputPath = path.join(this.outputBasePath, '' + this._buildCount++);
+        fs.mkdirSync(outputPath);
 
-        return readTree(this._inputTree).then(function(inputTreesOutputPath) {
-          let outputPath = path.join(self.outputBasePath, '' + self._buildCount++);
-          fs.mkdirSync(outputPath);
+        copyFilesWithAnnotation(0, inputTreesOutputPath, outputPath);
 
-          copyFilesWithAnnotation(0, inputTreesOutputPath, outputPath);
-
-          return outputPath;
-        });
+        return outputPath;
       };
       UnstableOutputPathTree.prototype.cleanup = function() {
         quickTemp.remove(this, 'outputBasePath');
@@ -131,26 +129,25 @@ describe('integration test', function() {
         this._inputTree = inputTree;
         quickTemp.makeOrReuse(this, 'outputPath');
       }
-      StableOutputPathTree.prototype.read = function(readTree) {
-        let self = this;
+      StableOutputPathTree.prototype.read = async function(readTree) {
+        quickTemp.makeOrRemake(this, 'outputPath');
 
-        quickTemp.makeOrRemake(self, 'outputPath');
+        const inputTreesOutputPath = await readTree(this._inputTree);
 
-        return readTree(this._inputTree).then(function(inputTreesOutputPath) {
-          copyFilesWithAnnotation(0, inputTreesOutputPath, self.outputPath);
+        copyFilesWithAnnotation(0, inputTreesOutputPath, this.outputPath);
 
-          return self.outputPath;
-        });
+        return this.outputPath;
       };
+
       StableOutputPathTree.prototype.cleanup = function() {
         quickTemp.remove(this, 'outputPath');
       };
 
       class InputPathTracker extends Plugin {
-        build() {
+        build(...args) {
           inputPaths.push(this.inputPaths[0]);
 
-          return AnnotatingPlugin.prototype.build.apply(this, arguments);
+          return AnnotatingPlugin.prototype.build.apply(this, args);
         }
       }
 
@@ -158,7 +155,7 @@ describe('integration test', function() {
         builder = new Builder_0_16(inputNode);
 
         function buildAndCheck() {
-          return RSVP.Promise.resolve()
+          return Promise.resolve()
             .then(function() {
               return builder.build();
             })
@@ -181,21 +178,21 @@ describe('integration test', function() {
       }
 
       it('provides stable inputPaths when upstream output path changes', function() {
-        let unstableNode = new UnstableOutputPathTree(node1);
-        let inputTracker = new InputPathTracker([unstableNode]);
+        const unstableNode = new UnstableOutputPathTree(node1);
+        const inputTracker = new InputPathTracker([unstableNode]);
 
         return isConsistent(inputTracker);
       });
 
       it('provides stable inputPaths when upstream output path is consistent', function() {
-        let unstableNode = new StableOutputPathTree(node1);
-        let inputTracker = new InputPathTracker([unstableNode]);
+        const unstableNode = new StableOutputPathTree(node1);
+        const inputTracker = new InputPathTracker([unstableNode]);
 
         return isConsistent(inputTracker);
       });
 
-      it('provides stable inputPaths when upstream output path is consistent without symlinking', function() {
-        symlinkOrCopy.setOptions({
+      it('provides stable inputPaths when upstream output path is consistent without symlinking', async function() {
+        symlinkOrCopy._setOptions({
           fs,
           isWindows: process.platform === 'win32',
           canSymlink: false,
@@ -206,98 +203,90 @@ describe('integration test', function() {
           'foo.txt': 'foo contents',
         });
 
-        let unstableNode = new StableOutputPathTree(tmp.fixtures);
-        let inputTracker = new InputPathTracker([unstableNode]);
+        const unstableNode = new StableOutputPathTree(tmp.fixtures);
+        const inputTracker = new InputPathTracker([unstableNode]);
 
-        return isConsistent(inputTracker)
-          .then(function() {
-            fixturify.writeSync(tmp.fixtures, {
-              'foo.txt': 'foo other contents',
-            });
+        await isConsistent(inputTracker);
 
-            return builder.build();
-          })
-          .then(function(hash) {
-            let fixture = fixturify.readSync(hash.directory);
+        fixturify.writeSync(tmp.fixtures, {
+          'foo.txt': 'foo other contents',
+        });
 
-            expect(fixture).to.deep.equal({
-              'foo.txt': 'foo other contents - from input node #0 - from input node #0',
-            });
-          });
+        const hash = await builder.build();
+        const fixture = fixturify.readSync(hash.directory);
+
+        expect(fixture).to.deep.equal({
+          'foo.txt': 'foo other contents - from input node #0 - from input node #0',
+        });
       });
     });
   });
 
   describe('.input/.output functionality', function() {
-    let Builder = multidepRequire('broccoli', '0.16.9').Builder;
+    const Builder = multidepRequire('broccoli', '0.16.9').Builder;
     class FSFacadePlugin extends Plugin {
       build() {
-        let content = this.input.readFileSync('foo.txt', 'utf-8');
+        const content = this.input.readFileSync('foo.txt', 'utf-8');
         this.output.writeFileSync('complied.txt', content);
       }
     }
 
-    it('reads file using this.input', function() {
-      let node = new FSFacadePlugin([node1, node2]);
+    it('reads file using this.input', async function() {
+      const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
-      return builder.build().then(function() {
-        return expect(node.input.readFileSync('foo.txt', 'utf-8')).to.equal('foo contents');
-      });
+      await builder.build();
+      expect(node.input.readFileSync('foo.txt', 'utf-8')).to.equal('foo contents');
     });
 
-    it('reads file using this.input', function() {
-      let node = new FSFacadePlugin([node1, node2]);
+    it('reads file using this.input', async function() {
+      const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
-      return builder.build().then(function() {
-        return expect(node.input.at(1).readFileSync('bar.txt', 'utf-8')).to.equal('bar contents');
-      });
+      await builder.build();
+      expect(node.input.at(1).readFileSync('bar.txt', 'utf-8')).to.equal('bar contents');
     });
 
-    it('writes file using this.output', function() {
-      let node = new FSFacadePlugin([node1, node2]);
+    it('writes file using this.output', async function() {
+      const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
-      return builder.build().then(function() {
-        return expect(node.output.readFileSync('complied.txt', 'utf-8')).to.equal('foo contents');
-      });
+      await builder.build();
+      expect(node.output.readFileSync('complied.txt', 'utf-8')).to.equal('foo contents');
     });
 
-    it('verify few operations we expect are present in input', function() {
-      let node = new FSFacadePlugin([node1, node2]);
+    it('verify few operations we expect are present in input', async function() {
+      const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
-      return builder.build().then(function() {
-        expect(typeof node.input.readFileSync == 'function').to.be.true;
-        expect(typeof node.input.readdirSync == 'function').to.be.true;
-        expect(typeof node.input.at == 'function').to.be.true;
-        expect(() => {
-          node.input.writeFileSync('read.md', 'test');
-        }).to.throw(/Operation writeFileSync is not allowed .*/);
-      });
+      await builder.build();
+      expect(typeof node.input.readFileSync == 'function').to.be.true;
+      expect(typeof node.input.readdirSync == 'function').to.be.true;
+      expect(typeof node.input.at == 'function').to.be.true;
+      expect(() => {
+        node.input.writeFileSync('read.md', 'test');
+      }).to.throw(/Operation writeFileSync is not allowed .*/);
     });
 
-    it('verify few operations we expect are present in output', function() {
-      let node = new FSFacadePlugin([node1, node2]);
+    it('verify few operations we expect are present in output', async function() {
+      const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
-      return builder.build().then(function() {
-        expect(typeof node.output.readFileSync == 'function').to.be.true;
-        expect(typeof node.output.readdirSync == 'function').to.be.true;
-        expect(typeof node.output.existSync == 'function').to.be.true;
-        expect(typeof node.output.writeFileSync == 'function').to.be.true;
-        expect(typeof node.output.rmdirSync == 'function').to.be.true;
-        expect(typeof node.output.mkdirSync == 'function').to.be.true;
-        expect(() => {
-          node.output.readFileMeta('test.txt');
-        }).to.throw(/Operation readFileMeta is not allowed .*/);
-      });
+      await builder.build();
+      expect(typeof node.output.readFileSync == 'function').to.be.true;
+      expect(typeof node.output.readdirSync == 'function').to.be.true;
+      expect(typeof node.output.existSync == 'function').to.be.true;
+      expect(typeof node.output.writeFileSync == 'function').to.be.true;
+      expect(typeof node.output.rmdirSync == 'function').to.be.true;
+      expect(typeof node.output.mkdirSync == 'function').to.be.true;
+      expect(() => {
+        node.output.readFileMeta('test.txt');
+      }).to.throw(/Operation readFileMeta is not allowed .*/);
     });
   });
 
   multidepRequire.forEachVersion('broccoli', function(broccoliVersion, module) {
-    let Builder = module.Builder;
+    const Builder = module.Builder;
 
     // Call .build on the builder and return outputPath; works across Builder
     // versions
     function build(builder) {
-      return RSVP.Promise.resolve()
+      return Promise.resolve()
         .then(function() {
           return builder.build();
         })
@@ -330,8 +319,8 @@ describe('integration test', function() {
         }
 
         function isPersistent(options) {
-          let buildOnce = new BuildOnce([], options);
-          let builder = new Builder(buildOnce);
+          const buildOnce = new BuildOnce([], options);
+          const builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
             return build(builder).then(function() {
               return buildOnce.output.existsSync('foo.txt');
@@ -369,8 +358,8 @@ describe('integration test', function() {
         }
 
         function isPersistent(options) {
-          let buildOnce = new BuildOnce([], options);
-          let builder = new Builder(buildOnce);
+          const buildOnce = new BuildOnce([], options);
+          const builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
             return build(builder).then(function() {
               return buildOnce.output.existsSync('foo.txt');
@@ -397,20 +386,20 @@ describe('integration test', function() {
         });
       });
 
-      describe('needsCache', function() {
-        function hasCacheDirectory(options) {
-          let plugin = new NoopPlugin([], options);
-          let builder = new Builder(plugin);
-          return build(builder)
-            .then(function() {
-              if (plugin.cachePath != null) {
-                expect(fs.existsSync(plugin.cachePath)).to.equal(true);
-              }
-              return plugin.cachePath != null;
-            })
-            .finally(function() {
-              builder.cleanup();
-            });
+      describe('needsCache', async function() {
+        async function hasCacheDirectory(options) {
+          const plugin = new NoopPlugin([], options);
+          const builder = new Builder(plugin);
+
+          try {
+            await build(builder);
+            if (plugin.cachePath != null) {
+              expect(fs.existsSync(plugin.cachePath)).to.equal(true);
+            }
+            return plugin.cachePath != null;
+          } finally {
+            builder.cleanup();
+          }
         }
 
         it('has cache directory by default', function() {

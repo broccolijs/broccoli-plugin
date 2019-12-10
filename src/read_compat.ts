@@ -86,19 +86,19 @@ export default class ReadCompat {
 
     return mapSeries(this.pluginInterface.inputNodes, readTree)
       .then(outputPaths => {
-        let priorBuildInputNodeOutputPaths = this._priorBuildInputNodeOutputPaths;
+        const priorBuildInputNodeOutputPaths = this._priorBuildInputNodeOutputPaths;
         // In old .read-based Broccoli, the inputNodes's outputPaths can change
         // on each rebuild. But the new API requires that our plugin sees fixed
         // input paths. Therefore, we symlink the inputNodes' outputPaths to our
         // (fixed) inputPaths on each .read.
         for (let i = 0; i < outputPaths.length; i++) {
-          let priorPath = priorBuildInputNodeOutputPaths[i];
-          let currentPath = outputPaths[i];
+          const priorPath = priorBuildInputNodeOutputPaths[i];
+          const currentPath = outputPaths[i];
 
           // if this output path is different from last builds or
           // if we cannot symlink then clear and symlink/copy manually
-          let hasDifferentPath = priorPath !== currentPath;
-          let forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
+          const hasDifferentPath = priorPath !== currentPath;
+          const forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
 
           if (forceReSymlinking) {
             // avoid `rimraf.sync` for initial build

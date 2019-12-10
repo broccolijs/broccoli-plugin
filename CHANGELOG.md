@@ -1,5 +1,9 @@
 # master
 
+# 4.0.1
+
+- upgrade all dependencies
+
 # 4.0.0
 
 - [BREAKING] Drop Node 8 support

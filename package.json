@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "broccoli-node-api": "^1.6.0",
-    "broccoli-output-wrapper": "^3.1.1",
+    "broccoli-output-wrapper": "^3.2.1",
     "fs-merger": "^3.0.1",
     "promise-map-series": "^0.2.1",
     "quick-temp": "^0.1.3",

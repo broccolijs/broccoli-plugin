@@ -1,5 +1,9 @@
 # master
 
+# 4.0.3
+
+- Update to the latest fs-merger
+
 # 4.0.2
 
 - [Bugfix] Bump broccoli-output-wrapper to v3.2.Bump broccoli-output-wrapper to v3.2.11

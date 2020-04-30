@@ -840,10 +840,10 @@ fs-extra@^8.0.1, fs-extra@^8.1.0:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-merger@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/fs-merger/-/fs-merger-3.0.1.tgz#4fba891e1ac83ce1ea4261b91fee475aaf628cb2"
-  integrity sha512-0DDF7GDMm4roej5N6Z7ZNC2y2VdZdYQtHm32wWluSONyxUMqIAWyD73v0S12GkqO416BGqSHr2tjU4hmIlbylw==
+fs-merger@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/fs-merger/-/fs-merger-3.1.0.tgz#f30f74f6c70b2ff7333ec074f3d2f22298152f3b"
+  integrity sha512-RZ9JtqugaE8Rkt7idO5NSwcxEGSDZpLmVFjtVQUm3f+bWun7JAU6fKyU6ZJUeUnKdJwGx8uaro+K4QQfOR7vpA==
   dependencies:
     broccoli-node-api "^1.7.0"
     broccoli-node-info "^2.1.0"

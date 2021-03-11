@@ -1,3 +1,5 @@
+'use strict';
+
 const Plugin = require('../dist/index');
 const chai = require('chai'),
   expect = chai.expect;
@@ -10,8 +12,8 @@ class NoopPlugin extends Plugin {
   }
 }
 
-describe('unit tests', function() {
-  it('produces correct toString result', function() {
+describe('unit tests', function () {
+  it('produces correct toString result', function () {
     expect(new NoopPlugin([]) + '').to.equal('[NoopPlugin]');
     expect(new NoopPlugin([], { name: 'FooPlugin' }) + '').to.equal('[FooPlugin]');
     expect(new NoopPlugin([], { annotation: 'some note' }) + '').to.equal(
@@ -19,48 +21,48 @@ describe('unit tests', function() {
     );
   });
 
-  describe('usage errors', function() {
-    it('validates inputNodes', function() {
+  describe('usage errors', function () {
+    it('validates inputNodes', function () {
       class TestPlugin extends Plugin {
         build() {
           // no implementation
         }
       }
 
-      expect(function() {
+      expect(function () {
         new TestPlugin();
       }).to.throw(
         TypeError,
         'TestPlugin: Expected an array of input nodes (input trees), got undefined'
       );
 
-      expect(function() {
+      expect(function () {
         new TestPlugin({});
       }).to.throw(
         TypeError,
         'TestPlugin: Expected an array of input nodes (input trees), got [object Object]'
       );
 
-      expect(function() {
+      expect(function () {
         new TestPlugin({ length: 1 });
       }).to.throw(
         TypeError,
         'TestPlugin: Expected an array of input nodes (input trees), got [object Object]'
       );
 
-      expect(function() {
+      expect(function () {
         new TestPlugin([null]);
       }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got null for inputNodes[0]');
 
-      expect(function() {
+      expect(function () {
         new TestPlugin([undefined]);
       }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got undefined for inputNodes[0]');
 
-      expect(function() {
+      expect(function () {
         new TestPlugin([true]);
       }).to.throw(TypeError, 'TestPlugin: Expected Broccoli node, got true for inputNodes[0]');
 
-      expect(function() {
+      expect(function () {
         new TestPlugin([[]]);
       }).to.throw(TypeError, /TestPlugin: Expected Broccoli node/);
 
@@ -70,7 +72,7 @@ describe('unit tests', function() {
       new TestPlugin([new TestPlugin([])]);
     });
 
-    it('disallows overriding read, cleanup, and rebuild', function() {
+    it('disallows overriding read, cleanup, and rebuild', function () {
       const prohibitedNames = ['read', 'rebuild', 'cleanup'];
       for (let i = 0; i < prohibitedNames.length; i++) {
         class BadPlugin extends Plugin {
@@ -83,20 +85,20 @@ describe('unit tests', function() {
           /* empty function */
         };
 
-        expect(function() {
+        expect(function () {
           new BadPlugin([]);
         }).to.throw(/For compatibility, plugins must not define/);
       }
     });
 
-    it('checks that the inputNodes argument is an array', function() {
-      expect(function() {
+    it('checks that the inputNodes argument is an array', function () {
+      expect(function () {
         new NoopPlugin('notAnArray');
       }).to.throw(/Expected an array/);
     });
 
-    it('throws runtime exceptions if inputPaths/outputPath are accessed prematurily', function() {
-      expect(function() {
+    it('throws runtime exceptions if inputPaths/outputPath are accessed prematurily', function () {
+      expect(function () {
         new (class extends Plugin {
           constructor(...args) {
             super(...args);
@@ -105,7 +107,7 @@ describe('unit tests', function() {
         })([]);
       }).to.throw(/BroccoliPlugin: this.inputPaths is only accessible once the build has begun./);
 
-      expect(function() {
+      expect(function () {
         new (class extends Plugin {
           constructor(...args) {
             super(...args);
@@ -124,8 +126,8 @@ describe('unit tests', function() {
       );
     });
 
-    it('throws runtime exceptions if input/output are accessed prematurily', function() {
-      expect(function() {
+    it('throws runtime exceptions if input/output are accessed prematurily', function () {
+      expect(function () {
         new (class extends Plugin {
           constructor(...args) {
             super(...args);
@@ -134,7 +136,7 @@ describe('unit tests', function() {
         })([]);
       }).to.throw(/BroccoliPlugin: this.input is only accessible once the build has begun./);
 
-      expect(function() {
+      expect(function () {
         new (class extends Plugin {
           constructor(...args) {
             super(...args);
@@ -154,13 +156,11 @@ describe('unit tests', function() {
     });
   });
 
-  describe('__broccoliGetInfo__', function() {
-    describe('builderFeatures argument', function() {
+  describe('__broccoliGetInfo__', function () {
+    describe('builderFeatures argument', function () {
       function expectBasicInterface(pluginInterface) {
         expect(pluginInterface).to.have.property('nodeType', 'transform');
-        expect(pluginInterface)
-          .to.have.property('inputNodes')
-          .that.deep.equals([]);
+        expect(pluginInterface).to.have.property('inputNodes').that.deep.equals([]);
         expect(pluginInterface).to.have.property('persistentOutput', false);
         expect(pluginInterface).to.have.property('name', 'NoopPlugin');
         expect(pluginInterface).to.have.property('annotation', undefined);
@@ -170,7 +170,7 @@ describe('unit tests', function() {
         expect(typeof pluginInterface.instantiationStack).to.equal('string');
       }
 
-      it('returns a plugin interface with explicit feature flags', function() {
+      it('returns a plugin interface with explicit feature flags', function () {
         const node = new NoopPlugin([]);
         expectBasicInterface(
           node.__broccoliGetInfo__({
@@ -180,24 +180,24 @@ describe('unit tests', function() {
         );
       });
 
-      it('defaults to the default featureset if no features are provided', function() {
+      it('defaults to the default featureset if no features are provided', function () {
         const node = new NoopPlugin([]);
 
         expectBasicInterface(node.__broccoliGetInfo__());
       });
 
-      it('throws an error when not passed enough feature flags', function() {
+      it('throws an error when not passed enough feature flags', function () {
         const node = new NoopPlugin([]);
 
-        expect(function() {
+        expect(function () {
           // Pass empty features object, rather than missing (= default) argument
           node.__broccoliGetInfo__({});
         }).to.throw(/Minimum builderFeatures not met/);
       });
     });
 
-    describe('features', function() {
-      it('sets needsCache if provided at instantiation`', function() {
+    describe('features', function () {
+      it('sets needsCache if provided at instantiation`', function () {
         const node = new NoopPlugin([], {
           needsCache: false,
         });
@@ -224,7 +224,7 @@ describe('unit tests', function() {
       });
     });
 
-    describe('backwards compatibility', function() {
+    describe('backwards compatibility', function () {
       // All we're testing here is that old builder versions don't get
       // properties that they don't support from __broccoliGetInfo__(). They
       // typically won't care, so this is mostly for the sake of exactness.
@@ -234,7 +234,7 @@ describe('unit tests', function() {
 
       const node = new NoopPlugin([]);
 
-      it('2 feature flags', function() {
+      it('2 feature flags', function () {
         expect(
           node.__broccoliGetInfo__({
             persistentOutputFlag: true,
@@ -252,7 +252,7 @@ describe('unit tests', function() {
         ]);
       });
 
-      it('3 feature flags', function() {
+      it('3 feature flags', function () {
         expect(
           node.__broccoliGetInfo__({
             persistentOutputFlag: true,
@@ -272,7 +272,7 @@ describe('unit tests', function() {
         ]);
       });
 
-      it('4 feature flags', function() {
+      it('4 feature flags', function () {
         expect(
           node.__broccoliGetInfo__({
             persistentOutputFlag: true,
@@ -294,7 +294,7 @@ describe('unit tests', function() {
         ]);
       });
 
-      it('5 feature flags', function() {
+      it('5 feature flags', function () {
         expect(
           node.__broccoliGetInfo__({
             persistentOutputFlag: true,

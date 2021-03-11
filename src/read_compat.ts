@@ -78,14 +78,14 @@ export default class ReadCompat {
     }
   }
 
-  read(readTree: MapSeriesIterator<InputNode>) {
+  read(readTree: MapSeriesIterator<InputNode>): Promise<string> {
     if (!this.pluginInterface.persistentOutput) {
       rimraf.sync(this.outputPath);
       fs.mkdirSync(this.outputPath);
     }
 
     return mapSeries(this.pluginInterface.inputNodes, readTree)
-      .then(outputPaths => {
+      .then((outputPaths) => {
         const priorBuildInputNodeOutputPaths = this._priorBuildInputNodeOutputPaths;
         // In old .read-based Broccoli, the inputNodes's outputPaths can change
         // on each rebuild. But the new API requires that our plugin sees fixed
@@ -118,7 +118,7 @@ export default class ReadCompat {
       .then(() => this.outputPath);
   }
 
-  cleanup() {
+  cleanup(): void {
     quickTemp.remove(this, 'outputPath');
     quickTemp.remove(this, 'cachePath');
     quickTemp.remove(this, 'inputBasePath');

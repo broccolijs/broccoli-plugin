@@ -36,66 +36,66 @@ class NoopPlugin extends Plugin {
   }
 }
 
-describe('integration test', function() {
+describe('integration test', function () {
   let node1, node2;
 
-  beforeEach(function() {
+  beforeEach(function () {
     node1 = new Fixturify({ 'foo.txt': 'foo contents' });
     node2 = new Fixturify({ 'bar.txt': 'bar contents' });
   });
 
   let builder;
 
-  afterEach(function() {
+  afterEach(function () {
     if (builder) {
-      return Promise.resolve(builder.cleanup()).then(function() {
+      return Promise.resolve(builder.cleanup()).then(function () {
         builder = null;
       });
     }
   });
 
-  describe('.read compatibility code', function() {
+  describe('.read compatibility code', function () {
     const Builder_0_16 = multidepRequire('broccoli', '0.16.9').Builder;
 
-    it('sets description', function() {
+    it('sets description', function () {
       const node = new AnnotatingPlugin([], {
         name: 'SomePlugin',
         annotation: 'some annotation',
       });
       builder = new Builder_0_16(node);
-      return builder.build().then(function(hash) {
+      return builder.build().then(function (hash) {
         return expect(hash.graph.toJSON().description).to.equal('SomePlugin: some annotation');
       });
     });
 
-    it('handles readCompat initialization errors', function() {
+    it('handles readCompat initialization errors', function () {
       const node = new AnnotatingPlugin([]);
       let initializeReadCompatCalls = 0;
-      node._initializeReadCompat = function() {
+      node._initializeReadCompat = function () {
         // stub
         throw new Error('someError ' + ++initializeReadCompatCalls);
       };
       builder = new Builder_0_16(node);
       return Promise.resolve()
-        .then(function() {
+        .then(function () {
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1');
         })
-        .then(function() {
+        .then(function () {
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1');
         });
     });
 
-    describe('stable inputPaths', function() {
+    describe('stable inputPaths', function () {
       let tmp, inputPaths, originalCanSymlink, builder;
 
-      beforeEach(function() {
+      beforeEach(function () {
         inputPaths = [];
 
         originalCanSymlink = symlinkOrCopy.canSymlink;
         tmp = {};
       });
 
-      afterEach(function() {
+      afterEach(function () {
         symlinkOrCopy._setOptions({
           fs,
           isWindows: process.platform === 'win32',
@@ -112,7 +112,7 @@ describe('integration test', function() {
         quickTemp.makeOrReuse(this, 'outputBasePath');
         this._buildCount = 0;
       }
-      UnstableOutputPathTree.prototype.read = async function(readTree) {
+      UnstableOutputPathTree.prototype.read = async function (readTree) {
         quickTemp.makeOrRemake(this, 'outputBasePath');
 
         const inputTreesOutputPath = await readTree(this._inputTree);
@@ -123,7 +123,7 @@ describe('integration test', function() {
 
         return outputPath;
       };
-      UnstableOutputPathTree.prototype.cleanup = function() {
+      UnstableOutputPathTree.prototype.cleanup = function () {
         quickTemp.remove(this, 'outputBasePath');
       };
 
@@ -131,7 +131,7 @@ describe('integration test', function() {
         this._inputTree = inputTree;
         quickTemp.makeOrReuse(this, 'outputPath');
       }
-      StableOutputPathTree.prototype.read = async function(readTree) {
+      StableOutputPathTree.prototype.read = async function (readTree) {
         quickTemp.makeOrRemake(this, 'outputPath');
 
         const inputTreesOutputPath = await readTree(this._inputTree);
@@ -141,7 +141,7 @@ describe('integration test', function() {
         return this.outputPath;
       };
 
-      StableOutputPathTree.prototype.cleanup = function() {
+      StableOutputPathTree.prototype.cleanup = function () {
         quickTemp.remove(this, 'outputPath');
       };
 
@@ -158,13 +158,13 @@ describe('integration test', function() {
 
         function buildAndCheck() {
           return Promise.resolve()
-            .then(function() {
+            .then(function () {
               return builder.build();
             })
-            .then(function(hash) {
+            .then(function (hash) {
               return fixturify.readSync(hash.directory);
             })
-            .then(function(fixture) {
+            .then(function (fixture) {
               expect(fixture).to.deep.equal({
                 'foo.txt': 'foo contents - from input node #0 - from input node #0',
               });
@@ -174,26 +174,26 @@ describe('integration test', function() {
         }
         return buildAndCheck()
           .then(buildAndCheck)
-          .then(function() {
+          .then(function () {
             expect(inputPaths[0]).to.equal(inputPaths[1]);
           });
       }
 
-      it('provides stable inputPaths when upstream output path changes', function() {
+      it('provides stable inputPaths when upstream output path changes', function () {
         const unstableNode = new UnstableOutputPathTree(node1);
         const inputTracker = new InputPathTracker([unstableNode]);
 
         return isConsistent(inputTracker);
       });
 
-      it('provides stable inputPaths when upstream output path is consistent', function() {
+      it('provides stable inputPaths when upstream output path is consistent', function () {
         const unstableNode = new StableOutputPathTree(node1);
         const inputTracker = new InputPathTracker([unstableNode]);
 
         return isConsistent(inputTracker);
       });
 
-      it('provides stable inputPaths when upstream output path is consistent without symlinking', async function() {
+      it('provides stable inputPaths when upstream output path is consistent without symlinking', async function () {
         symlinkOrCopy._setOptions({
           fs,
           isWindows: process.platform === 'win32',
@@ -224,7 +224,7 @@ describe('integration test', function() {
     });
   });
 
-  describe('.input/.output functionality', function() {
+  describe('.input/.output functionality', function () {
     const Builder = multidepRequire('broccoli', '0.16.9').Builder;
     class FSFacadePlugin extends Plugin {
       build() {
@@ -233,28 +233,28 @@ describe('integration test', function() {
       }
     }
 
-    it('reads file using this.input', async function() {
+    it('reads file using this.input', async function () {
       const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
       await builder.build();
       expect(node.input.readFileSync('foo.txt', 'utf-8')).to.equal('foo contents');
     });
 
-    it('reads file using this.input', async function() {
+    it('reads file using this.input', async function () {
       const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
       await builder.build();
       expect(node.input.at(1).readFileSync('bar.txt', 'utf-8')).to.equal('bar contents');
     });
 
-    it('writes file using this.output', async function() {
+    it('writes file using this.output', async function () {
       const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
       await builder.build();
       expect(node.output.readFileSync('complied.txt', 'utf-8')).to.equal('foo contents');
     });
 
-    it('verify few operations we expect are present in input', async function() {
+    it('verify few operations we expect are present in input', async function () {
       const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
       await builder.build();
@@ -266,7 +266,7 @@ describe('integration test', function() {
       }).to.throw(/Operation writeFileSync is not allowed .*/);
     });
 
-    it('verify few operations we expect are present in output', async function() {
+    it('verify few operations we expect are present in output', async function () {
       const node = new FSFacadePlugin([node1, node2]);
       builder = new Builder(node);
       await builder.build();
@@ -282,26 +282,26 @@ describe('integration test', function() {
     });
   });
 
-  multidepRequire.forEachVersion('broccoli', function(broccoliVersion, module) {
+  multidepRequire.forEachVersion('broccoli', function (broccoliVersion, module) {
     const Builder = module.Builder;
 
     // Call .build on the builder and return outputPath; works across Builder
     // versions
     function build(builder) {
       return Promise.resolve()
-        .then(function() {
+        .then(function () {
           return builder.build();
         })
-        .then(function(hash) {
+        .then(function (hash) {
           return /^0\./.test(broccoliVersion) ? hash.directory : builder.outputPath;
         });
     }
 
-    describe('Broccoli ' + broccoliVersion, function() {
-      it('works without errors', function() {
+    describe('Broccoli ' + broccoliVersion, function () {
+      it('works without errors', function () {
         builder = new Builder(new AnnotatingPlugin([node1, node2]));
         return expect(
-          build(builder).then(function(outputPath) {
+          build(builder).then(function (outputPath) {
             return fixturify.readSync(outputPath);
           })
         ).to.eventually.deep.equal({
@@ -310,7 +310,7 @@ describe('integration test', function() {
         });
       });
 
-      describe('persistent fs', function() {
+      describe('persistent fs', function () {
         class BuildOnce extends Plugin {
           build() {
             if (!this.builtOnce) {
@@ -324,32 +324,32 @@ describe('integration test', function() {
           const buildOnce = new BuildOnce([], options);
           const builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
-            return build(builder).then(function() {
+            return build(builder).then(function () {
               return buildOnce.output.existsSync('foo.txt');
             });
           }
           return expect(buildAndCheckExistence())
             .to.eventually.equal(true)
             .then(buildAndCheckExistence)
-            .finally(function() {
+            .finally(function () {
               builder.cleanup();
             });
         }
 
-        it('is not persistent by default', function() {
+        it('is not persistent by default', function () {
           return expect(isPersistent({})).to.eventually.equal(false);
         });
 
-        it('is not persistent when persistentOutput is false', function() {
+        it('is not persistent when persistentOutput is false', function () {
           return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
         });
 
-        it('is persistent when persistentOutput is true', function() {
+        it('is persistent when persistentOutput is true', function () {
           return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
         });
       });
 
-      describe('persistent InputOutput', function() {
+      describe('persistent InputOutput', function () {
         class BuildOnce extends Plugin {
           build() {
             if (!this.builtOnce) {
@@ -363,32 +363,32 @@ describe('integration test', function() {
           const buildOnce = new BuildOnce([], options);
           const builder = new Builder(buildOnce);
           function buildAndCheckExistence() {
-            return build(builder).then(function() {
+            return build(builder).then(function () {
               return buildOnce.output.existsSync('foo.txt');
             });
           }
           return expect(buildAndCheckExistence())
             .to.eventually.equal(true)
             .then(buildAndCheckExistence)
-            .finally(function() {
+            .finally(function () {
               builder.cleanup();
             });
         }
 
-        it('is not persistent by default', function() {
+        it('is not persistent by default', function () {
           return expect(isPersistent({})).to.eventually.equal(false);
         });
 
-        it('is not persistent when persistentOutput is false', function() {
+        it('is not persistent when persistentOutput is false', function () {
           return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
         });
 
-        it('is persistent when persistentOutput is true', function() {
+        it('is persistent when persistentOutput is true', function () {
           return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
         });
       });
 
-      describe('needsCache', async function() {
+      describe('needsCache', async function () {
         async function hasCacheDirectory(options) {
           const plugin = new NoopPlugin([], options);
           const builder = new Builder(plugin);
@@ -404,15 +404,15 @@ describe('integration test', function() {
           }
         }
 
-        it('has cache directory by default', function() {
+        it('has cache directory by default', function () {
           return expect(hasCacheDirectory()).to.eventually.equal(true);
         });
 
-        it('has no cache directory when needsCache is false', function() {
+        it('has no cache directory when needsCache is false', function () {
           return expect(hasCacheDirectory({ needsCache: false })).to.eventually.equal(false);
         });
 
-        it('has cache directory when needsCache is true', function() {
+        it('has cache directory when needsCache is true', function () {
           return expect(hasCacheDirectory({ needsCache: true })).to.eventually.equal(true);
         });
       });

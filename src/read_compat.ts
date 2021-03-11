@@ -85,7 +85,7 @@ export default class ReadCompat {
     }
 
     return mapSeries(this.pluginInterface.inputNodes, readTree)
-      .then(outputPaths => {
+      .then((outputPaths) => {
         const priorBuildInputNodeOutputPaths = this._priorBuildInputNodeOutputPaths;
         // In old .read-based Broccoli, the inputNodes's outputPaths can change
         // on each rebuild. But the new API requires that our plugin sees fixed

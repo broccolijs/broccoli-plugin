@@ -1,3 +1,15 @@
+## v4.0.5 (2021-03-11)
+
+#### :house: Internal
+* [#61](https://github.com/broccolijs/broccoli-plugin/pull/61) Update devDependencies to latest ([@rwjblue](https://github.com/rwjblue))
+* [#60](https://github.com/broccolijs/broccoli-plugin/pull/60) Update linting configuration and dependencies ([@rwjblue](https://github.com/rwjblue))
+* [#59](https://github.com/broccolijs/broccoli-plugin/pull/59) Update dependencies to latest ([@rwjblue](https://github.com/rwjblue))
+* [#58](https://github.com/broccolijs/broccoli-plugin/pull/58) Remove Travis CI and AppVeyor CI ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v4.0.4 (2021-03-11)
 
 #### :bug: Bug Fix

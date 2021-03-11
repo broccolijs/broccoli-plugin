@@ -63,7 +63,7 @@ class Plugin implements TransformNode {
   private _needsCache: boolean;
   private _volatile: boolean;
   private _trackInputChanges: boolean;
-  private _instantiationStack: string;
+  private _instantiationError: Error;
   private _readCompatError?: Error;
   private _readCompat?: ReadCompat | false;
   private rebuild?: () => void;
@@ -80,9 +80,10 @@ class Plugin implements TransformNode {
   cachePath?: string;
 
   constructor(inputNodes: InputNode[], options: PluginOptions = {}) {
-    // Remember current call stack (minus "Error" line)
-    const errorStack = '' + new Error().stack;
-    this._instantiationStack = errorStack.replace(/[^\n]*\n/, '');
+    // capture an instantiation error so that we can lazily access the stack to
+    // let folks know where a plugin was instantiated from if there is a build
+    // error
+    this._instantiationError = new Error();
 
     if (options.name != null) {
       this._name = options.name;
@@ -188,12 +189,20 @@ class Plugin implements TransformNode {
       );
     }
 
+    const instantiationError = this._instantiationError;
+
     const nodeInfo: TransformNodeInfo = {
       nodeType: 'transform',
       inputNodes: this._inputNodes,
       setup: this._setup.bind(this),
       getCallbackObject: this.getCallbackObject.bind(this), // .build, indirectly
-      instantiationStack: this._instantiationStack,
+
+      get instantiationStack() {
+        // Remember current call stack (minus "Error" line)
+        const errorStack = '' + instantiationError.stack;
+        return errorStack.replace(/[^\n]*\n/, '');
+      },
+
       name: this._name,
       annotation: this._annotation,
       persistentOutput: this._persistentOutput,

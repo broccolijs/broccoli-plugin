@@ -1,3 +1,5 @@
+'use strict';
+
 const Plugin = require('../dist/index');
 const chai = require('chai'),
   expect = chai.expect;

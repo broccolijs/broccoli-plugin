@@ -1,3 +1,17 @@
+## v4.0.4 (2021-03-11)
+
+#### :bug: Bug Fix
+
+- [#55](https://github.com/broccolijs/broccoli-plugin/pull/55) Avoid forcing eager calculation of error stacks ([@rwjblue](https://github.com/rwjblue))
+
+#### :house: Internal
+
+- [#56](https://github.com/broccolijs/broccoli-plugin/pull/56) Add release automation setup ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 # Changelog
 
 # 4.0.3

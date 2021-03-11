@@ -566,7 +566,7 @@ broccoli-fixturify@^0.3.0:
     broccoli-plugin "^1.2.0"
     fixturify "~0.3.0"
 
-broccoli-node-api@^1.6.0, broccoli-node-api@^1.7.0:
+broccoli-node-api@^1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/broccoli-node-api/-/broccoli-node-api-1.7.0.tgz#391aa6edecd2a42c63c111b4162956b2fa288cb6"
   integrity sha512-QIqLSVJWJUVOhclmkmypJJH9u9s/aWH4+FH6Q6Ju5l+Io4dtwqdPUNmDfw40o6sxhbZHhqGujDJuHTML1wG8Yw==
@@ -576,10 +576,10 @@ broccoli-node-info@^2.1.0:
   resolved "https://registry.yarnpkg.com/broccoli-node-info/-/broccoli-node-info-2.1.0.tgz#ca84560e8570ff78565bea1699866ddbf58ad644"
   integrity sha512-l6qDuboJThHfRVVWQVaTs++bFdrFTP0gJXgsWenczc1PavRVUmL1Eyb2swTAXXMpDOnr2zhNOBLx4w9AxkqbPQ==
 
-broccoli-output-wrapper@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/broccoli-output-wrapper/-/broccoli-output-wrapper-3.2.1.tgz#8f9d1092afe0c1a4b7a1b6f0d2c62f1c403e82ad"
-  integrity sha512-mhOTy8AyzEsqgefR2ejbv5QTy3dbY2bvDfkARo55Xml52r2MU0CehQu4T/CH6oPcAXkdVYG/hGm9UpV1vU9Ohg==
+broccoli-output-wrapper@^3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/broccoli-output-wrapper/-/broccoli-output-wrapper-3.2.5.tgz#514b17801c92922a2c2f87fd145df2a25a11bc5f"
+  integrity sha512-bQAtwjSrF4Nu0CK0JOy5OZqw9t5U0zzv2555EA/cF8/a8SLDTIetk9UgrtMVw7qKLKdSpOZ2liZNeZZDaKgayw==
   dependencies:
     fs-extra "^8.1.0"
     heimdalljs-logger "^0.1.10"
@@ -3257,6 +3257,11 @@ promise-map-series@^0.2.1:
   dependencies:
     rsvp "^3.0.14"
 
+promise-map-series@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/promise-map-series/-/promise-map-series-0.3.0.tgz#41873ca3652bb7a042b387d538552da9b576f8a1"
+  integrity sha512-3npG2NGhTc8BWBolLLf8l/92OxMGaRLbqvIh9wjCHhDXNvk4zsxaTaCpiCunW09qWPrN2zeNSNwRLVBrQQtutA==
+
 promise-retry@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/promise-retry/-/promise-retry-1.1.1.tgz#6739e968e3051da20ce6497fb2b50f6911df3d6d"
@@ -3315,9 +3320,10 @@ quick-lru@^5.1.1:
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-5.1.1.tgz#366493e6b3e42a3a6885e2e99d18f80fb7a8c932"
   integrity sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==
 
-quick-temp@^0.1.3:
+quick-temp@^0.1.3, quick-temp@^0.1.8:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/quick-temp/-/quick-temp-0.1.8.tgz#bab02a242ab8fb0dd758a3c9776b32f9a5d94408"
+  integrity sha1-urAqJCq4+w3XWKPJd2sy+aXZRAg=
   dependencies:
     mktemp "~0.4.0"
     rimraf "^2.5.4"
@@ -3568,6 +3574,13 @@ rimraf@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.0.tgz#614176d4b3010b75e5c390eb0ee96f6dc0cebb9b"
   integrity sha512-NDGVxTsjqfunkds7CqsOiEnxln4Bo7Nddl3XhS4pXg5OzwkLqJ971ZVAAnB+DDLnF76N+VnDEiBHaVV8I06SUg==
+  dependencies:
+    glob "^7.1.3"
+
+rimraf@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
+  integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
   dependencies:
     glob "^7.1.3"
 
@@ -3967,10 +3980,15 @@ symlink-or-copy@^1.1.8:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/symlink-or-copy/-/symlink-or-copy-1.2.0.tgz#5d49108e2ab824a34069b68974486c290020b393"
 
-symlink-or-copy@^1.2.0, symlink-or-copy@^1.3.0:
+symlink-or-copy@^1.2.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/symlink-or-copy/-/symlink-or-copy-1.3.0.tgz#a034398f11408ef083f51e0f7433040b6123ebf0"
   integrity sha512-czheMn4hgCWK/nxqtm9On5JgUrl5KBPCdXYWZjvwiRQ4NA7XhdHY2GSASxQoVh+mbXPMoGcR7/MnngLtUZij4Q==
+
+symlink-or-copy@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/symlink-or-copy/-/symlink-or-copy-1.3.1.tgz#9506dd64d8e98fa21dcbf4018d1eab23e77f71fe"
+  integrity sha512-0K91MEXFpBUaywiwSSkmKjnGcasG/rVBXFLJz5DrgGabpYD6N+3yZrfD6uUIfpuTu65DZLHi7N8CizHc07BPZA==
 
 table@^5.2.3:
   version "5.2.3"

@@ -13,6 +13,9 @@
   "author": "Jo Liss <joliss42@gmail.com>",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
@@ -21,6 +24,11 @@
     "pretest": "multidep test/multidep.json",
     "test": "yarn build && mocha",
     "watch": "tsc --watch"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   },
   "dependencies": {
     "broccoli-node-api": "^1.6.0",
@@ -53,17 +61,29 @@
     "multidep": "^2.0.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
+    "release-it": "^14.2.1",
+    "release-it-lerna-changelog": "^3.1.0",
     "typescript": "^3.7.3"
   },
   "engines": {
     "node": "10.* || >= 12.*"
   },
-  "files": [
-    "dist/"
-  ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "release-it": {
+    "plugins": {
+      "release-it-lerna-changelog": {
+        "infile": "CHANGELOG.md",
+        "launchEditor": true
+      }
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true,
+      "tokenRef": "GITHUB_AUTH"
     }
   }
 }

@@ -214,15 +214,18 @@ class Plugin implements TransformNode {
     // Go backwards in time, removing properties from nodeInfo if they are not
     // supported by the builder. Add new features at the top.
     if (!builderFeatures.needsCacheFlag) {
-      delete nodeInfo.needsCache;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (nodeInfo as any).needsCache;
     }
 
     if (!builderFeatures.volatileFlag) {
-      delete nodeInfo.volatile;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (nodeInfo as any).volatile;
     }
 
     if (!builderFeatures.trackInputChangesFlag) {
-      delete nodeInfo.trackInputChanges;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (nodeInfo as any).trackInputChanges;
     }
 
     return nodeInfo;

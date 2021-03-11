@@ -78,7 +78,7 @@ export default class ReadCompat {
     }
   }
 
-  read(readTree: MapSeriesIterator<InputNode>) {
+  read(readTree: MapSeriesIterator<InputNode>): Promise<string> {
     if (!this.pluginInterface.persistentOutput) {
       rimraf.sync(this.outputPath);
       fs.mkdirSync(this.outputPath);
@@ -118,7 +118,7 @@ export default class ReadCompat {
       .then(() => this.outputPath);
   }
 
-  cleanup() {
+  cleanup(): void {
     quickTemp.remove(this, 'outputPath');
     quickTemp.remove(this, 'cachePath');
     quickTemp.remove(this, 'inputBasePath');

@@ -249,7 +249,7 @@ class Plugin implements TransformNode {
     });
   }
 
-  toString() {
+  toString(): string {
     return '[' + this._name + (this._annotation != null ? ': ' + this._annotation : '') + ']';
   }
 
@@ -287,7 +287,7 @@ class Plugin implements TransformNode {
   }
 
   // Compatibility code so plugins can run on old, .read-based Broccoli:
-  read(readTree: MapSeriesIterator<InputNode>) {
+  read(readTree: MapSeriesIterator<InputNode>): Promise<string> | undefined {
     if (this._readCompat == null) {
       try {
         this._initializeReadCompat(); // call this.__broccoliGetInfo__()
@@ -306,7 +306,7 @@ class Plugin implements TransformNode {
     }
   }
 
-  cleanup() {
+  async cleanup(): Promise<void> {
     if (this._readCompat) return this._readCompat.cleanup();
   }
 

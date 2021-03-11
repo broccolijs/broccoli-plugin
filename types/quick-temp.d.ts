@@ -1,2 +1,2 @@
-export function makeOrReuse(obj: Record<string, unknown>, prop: string, className?: string): string;
-export function remove(obj: Record<string, unknown>, prop: string): void;
+export function makeOrReuse(obj: unknown, prop: string, className?: string): string;
+export function remove(obj: unknown, prop: string): void;

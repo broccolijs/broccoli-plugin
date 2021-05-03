@@ -1,3 +1,13 @@
+## v4.0.7 (2021-05-03)
+
+#### :bug: Bug Fix
+* Fix publishing issue with 4.0.6
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
+
 ## v4.0.6 (2021-05-03)
 
 #### :bug: Bug Fix

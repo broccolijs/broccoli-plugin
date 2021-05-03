@@ -1,3 +1,12 @@
+## v4.0.6 (2021-05-03)
+
+#### :bug: Bug Fix
+* [#62](https://github.com/broccolijs/broccoli-plugin/pull/62) Fix issues with `this.input` APIs (from fs-merger) ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 1
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v4.0.5 (2021-03-11)
 
 #### :house: Internal

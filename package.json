@@ -1,6 +1,6 @@
 {
   "name": "broccoli-plugin",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "description": "Base class for all Broccoli plugins",
   "keywords": [
     "broccoli-plugin"

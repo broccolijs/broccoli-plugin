@@ -20,6 +20,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "eslint .",
+    "prepare": "yarn build",
     "pretest": "multidep test/multidep.json",
     "test": "yarn build && mocha",
     "watch": "tsc --watch"

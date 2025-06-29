@@ -298,7 +298,7 @@ class Plugin implements TransformNode {
         // Prevent trying to initialize again on next .read
         this._readCompat = false;
         // Remember error so we can throw it on all subsequent .read calls
-        this._readCompatError = err;
+        this._readCompatError = err as Error;
       }
     }
 

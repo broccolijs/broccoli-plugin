@@ -9,9 +9,12 @@ const chai = require('chai'),
   expect = chai.expect;
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
-const multidepRequire = require('multidep')('test/multidep.json');
+const broccoli = require('broccoli');
+const broccoliPkg = require('broccoli/package.json');
 const quickTemp = require('quick-temp');
 const symlinkOrCopy = require('symlink-or-copy');
+
+const broccoliVersion = broccoliPkg.version;
 
 function copyFilesWithAnnotation(sourceDirId, sourceDir, destDir) {
   const files = fs.readdirSync(sourceDir);
@@ -55,14 +58,20 @@ describe('integration test', function () {
   });
 
   describe('.read compatibility code', function () {
-    const Builder_0_16 = multidepRequire('broccoli', '0.16.9').Builder;
+    const Builder = broccoli.Builder;
+
+    before(function () {
+      if (broccoliVersion!== '0.16.9') {
+        this.skip();
+      }
+    });
 
     it('sets description', function () {
       const node = new AnnotatingPlugin([], {
         name: 'SomePlugin',
         annotation: 'some annotation',
       });
-      builder = new Builder_0_16(node);
+      builder = new Builder(node);
       return builder.build().then(function (hash) {
         return expect(hash.graph.toJSON().description).to.equal('SomePlugin: some annotation');
       });
@@ -75,7 +84,7 @@ describe('integration test', function () {
         // stub
         throw new Error('someError ' + ++initializeReadCompatCalls);
       };
-      builder = new Builder_0_16(node);
+      builder = new Builder(node);
       return Promise.resolve()
         .then(function () {
           return expect(builder.build()).to.be.rejectedWith(Error, 'someError 1');
@@ -154,7 +163,7 @@ describe('integration test', function () {
       }
 
       function isConsistent(inputNode) {
-        builder = new Builder_0_16(inputNode);
+        builder = new Builder(inputNode);
 
         function buildAndCheck() {
           return Promise.resolve()
@@ -225,7 +234,7 @@ describe('integration test', function () {
   });
 
   describe('.input/.output functionality', function () {
-    const Builder = multidepRequire('broccoli', '0.16.9').Builder;
+    const Builder = broccoli.Builder;
     class FSFacadePlugin extends Plugin {
       build() {
         const content = this.input.readFileSync('foo.txt', 'utf-8');
@@ -282,8 +291,8 @@ describe('integration test', function () {
     });
   });
 
-  multidepRequire.forEachVersion('broccoli', function (broccoliVersion, module) {
-    const Builder = module.Builder;
+  
+    const Builder = broccoli.Builder;
 
     // Call .build on the builder and return outputPath; works across Builder
     // versions
@@ -417,5 +426,5 @@ describe('integration test', function () {
         });
       });
     });
-  });
+  
 });

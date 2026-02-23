@@ -57,7 +57,7 @@
     "typescript": "^4.2.3"
   },
   "engines": {
-    "node": "10.* || >= 12.*"
+    "node": ">= 14.14"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

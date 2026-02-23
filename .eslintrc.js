@@ -1,11 +1,9 @@
-'use strict';
-
 module.exports = {
   root: true,
 
   parserOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'script',
+    ecmaVersion: 2021,
+    sourceType: 'module',
   },
   plugins: ['prettier'],
   extends: ['plugin:prettier/recommended'],

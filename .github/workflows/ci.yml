@@ -57,12 +57,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    # prevent yarn from complaining about the packageManager key in the package.json
+    - run: cat package.json | jq "del(.packageManager)" | tee package.json
     - uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
         cache: yarn
-    # prevent yarn from complaining about the packageManager key in the package.json
-    - run: cat package.json | jq "del(.packageManager)" | tee package.json
     - run: yarn install --frozen-lockfile --ignore-engines
     - run: yarn add broccoli@${{matrix.broccoli-version}} --ignore-engines
     - run: yarn test

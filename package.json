@@ -24,6 +24,9 @@
     "test": "tsc && mocha",
     "watch": "tsc --watch"
   },
+  "resolutions": {
+    "quick-temp": "0.1.8"
+  },
   "dependencies": {
     "broccoli-node-api": "^1.7.0",
     "broccoli-output-wrapper": "^3.2.5",
@@ -54,33 +57,14 @@
     "fixturify": "^2.1.0",
     "mocha": "^8.3.1",
     "prettier": "^2.2.1",
-    "release-it": "^14.4.1",
-    "release-it-lerna-changelog": "^3.1.0",
+    "release-plan": "^0.17.4",
     "typescript": "^4.2.3"
   },
+  "packageManager": "pnpm@10.30.1+sha256.bc8bb877378eab6a8a83114eeb6a31ef88528db4ab5570299baba8fa54da2375",
   "engines": {
     "node": "10.* || >= 12.*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
-  },
-  "release-it": {
-    "plugins": {
-      "release-it-lerna-changelog": {
-        "infile": "CHANGELOG.md",
-        "launchEditor": true
-      }
-    },
-    "git": {
-      "tagName": "v${version}"
-    },
-    "github": {
-      "release": true,
-      "tokenRef": "GITHUB_AUTH"
-    }
-  },
-  "resolutions": {
-    "quick-temp": "0.1.8"
-  },
-  "packageManager": "pnpm@10.30.1+sha256.bc8bb877378eab6a8a83114eeb6a31ef88528db4ab5570299baba8fa54da2375"
+  }
 }

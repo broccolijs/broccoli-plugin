@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: yarn install --frozen-lockfile --ignore-engines
-    - run: yarn install broccoli@${{matrix.broccoli-version}} --ignore-engines
+    - run: yarn add broccoli@${{matrix.broccoli-version}} --ignore-engines
     - run: yarn lint
     - run: yarn test
 
@@ -42,5 +42,5 @@ jobs:
       with:
         node-version: 16
     - run: yarn install --frozen-lockfile --ignore-engines
-    - run: yarn install broccoli@${{matrix.broccoli-version}} --ignore-engines
+    - run: yarn add broccoli@${{matrix.broccoli-version}} --ignore-engines
     - run: yarn test

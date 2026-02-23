@@ -7,6 +7,17 @@ on:
     branches: [ master ]
 
 jobs:
+  lint: 
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 24
+    - run: yarn install --frozen-lockfile --ignore-engines
+    - run: yarn lint
+
   test:
     name: "Tests - Node ${{ matrix.node-version }} - Broccoli ${{ matrix.broccoli-version }}"
     runs-on: "ubuntu-latest"

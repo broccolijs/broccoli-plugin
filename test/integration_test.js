@@ -1,18 +1,20 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const fixturify = require('fixturify');
-const Fixturify = require('broccoli-fixturify');
-const Plugin = require('../dist/index');
-const chai = require('chai'),
-  expect = chai.expect;
-const chaiAsPromised = require('chai-as-promised');
+import fs from 'fs';;
+import path from 'path';;
+import fixturify from 'fixturify';;
+import Fixturify from 'broccoli-fixturify';;
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';;
+import broccoli from 'broccoli';;
+import quickTemp from 'quick-temp';;
+import symlinkOrCopy from 'symlink-or-copy';;
+import broccoliPkg from 'broccoli/package.json' with { type: 'json' };
+
+import Plugin from '../dist/index.js';
+
+const expect = chai.expect;
 chai.use(chaiAsPromised);
-const broccoli = require('broccoli');
-const broccoliPkg = require('broccoli/package.json');
-const quickTemp = require('quick-temp');
-const symlinkOrCopy = require('symlink-or-copy');
 
 const broccoliVersion = broccoliPkg.version;
 

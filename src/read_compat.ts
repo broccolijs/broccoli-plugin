@@ -1,15 +1,15 @@
-import Plugin = require('./index');
-import fs = require('fs');
-import path = require('path');
-import quickTemp = require('quick-temp');
-import mapSeries = require('promise-map-series');
-import symlinkOrCopy = require('symlink-or-copy');
+import Plugin from './index';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as quickTemp from 'quick-temp';
+import mapSeries from 'promise-map-series';
+import * as symlinkOrCopy from 'symlink-or-copy';
 const symlinkOrCopySync = symlinkOrCopy.sync;
 
 import { InputNode, TransformNodeInfo, CallbackObject } from 'broccoli-node-api';
 import { MapSeriesIterator } from './interfaces';
 
-interface PluginWithDescription extends Plugin {
+export interface PluginWithDescription extends Omit<Plugin, 'description'> {
   description?: string;
 }
 

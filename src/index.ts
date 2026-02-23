@@ -6,12 +6,15 @@ import {
   CallbackObject,
 } from 'broccoli-node-api';
 
-import { MapSeriesIterator, PluginOptions } from './interfaces';
+import type { MapSeriesIterator, PluginOptions } from './interfaces';
 
-import ReadCompat from './read_compat';
+import ReadCompat from './read_compat.js';
 import { FSOutput } from 'broccoli-output-wrapper';
-import buildOutputWrapper = require('broccoli-output-wrapper');
-import FSMerger = require('fs-merger');
+
+// @ts-expect-error the types are declared wrong upstream here
+import buildOutputWrapper from 'broccoli-output-wrapper';
+// @ts-expect-error the types are declared wrong upstream here
+import FSMerger from 'fs-merger';
 
 const BROCCOLI_FEATURES = Object.freeze({
   persistentOutputFlag: true,
@@ -54,7 +57,7 @@ function _checkBuilderFeatures(builderFeatures: FeatureSet) {
   }
 }
 
-class Plugin implements TransformNode {
+export default class Plugin implements TransformNode {
   private _name: string;
   private _annotation?: string;
   private _baseConstructorCalled: boolean;
@@ -317,5 +320,3 @@ class Plugin implements TransformNode {
     this._readCompat = new ReadCompat(this);
   }
 }
-
-export = Plugin;

@@ -17,11 +17,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v6
       with:
         node-version: 24
-    - run: yarn install --frozen-lockfile --ignore-engines
-    - run: yarn lint
+        cache: pnpm
+    - run: pnpm install
+    - run: pnpm lint
 
   test:
     name: "Tests - Node ${{ matrix.node-version }}"
@@ -35,12 +37,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn install --frozen-lockfile --ignore-engines
-    - run: yarn lint
-    - run: yarn test
+        cache: pnpm
+    - run: pnpm install
+    - run: pnpm test
 
   legacy-test:
     name: "Legacy Tests - Node ${{ matrix.node-version }} - Broccoli ${{ matrix.broccoli-version }}"
@@ -54,12 +57,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    # prevent yarn from complaining about the packageManager key in the package.json
+    - run: cat package.json | jq "del(.packageManager)" | tee package.json
     - uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
+        cache: yarn
     - run: yarn install --frozen-lockfile --ignore-engines
     - run: yarn add broccoli@${{matrix.broccoli-version}} --ignore-engines
-    - run: yarn lint
     - run: yarn test
 
   windows-test:
@@ -73,9 +78,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+    - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v6
       with:
-        node-version: 16
-    - run: yarn install --frozen-lockfile --ignore-engines
-    - run: yarn add broccoli@${{matrix.broccoli-version}} --ignore-engines
-    - run: yarn test
+        node-version: 20
+        cache: pnpm
+    - run: pnpm install
+    - run: pnpm install broccoli@${{matrix.broccoli-version}}
+    - run: pnpm test

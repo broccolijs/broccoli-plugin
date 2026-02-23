@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.15",
+    "@types/glob": "^8.0.0",
     "@types/mocha": "^8.2.1",
     "@types/node": "^14.14.33",
     "@types/rimraf": "^3.0.0",

@@ -33,7 +33,6 @@
     "fs-merger": "^3.2.1",
     "promise-map-series": "^0.3.0",
     "quick-temp": "^0.1.8",
-    "rimraf": "^3.0.2",
     "symlink-or-copy": "^1.3.1"
   },
   "devDependencies": {
@@ -41,7 +40,6 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^8.2.1",
     "@types/node": "^14.14.33",
-    "@types/rimraf": "^3.0.0",
     "@types/symlink-or-copy": "^1.2.0",
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",
@@ -62,7 +60,7 @@
   },
   "packageManager": "pnpm@10.30.1+sha256.bc8bb877378eab6a8a83114eeb6a31ef88528db4ab5570299baba8fa54da2375",
   "engines": {
-    "node": "10.* || >= 12.*"
+    "node": ">= 14.14"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

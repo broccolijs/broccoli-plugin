@@ -3,7 +3,6 @@ import fs = require('fs');
 import path = require('path');
 import quickTemp = require('quick-temp');
 import mapSeries = require('promise-map-series');
-import rimraf = require('rimraf');
 import symlinkOrCopy = require('symlink-or-copy');
 const symlinkOrCopySync = symlinkOrCopy.sync;
 
@@ -80,7 +79,7 @@ export default class ReadCompat {
 
   read(readTree: MapSeriesIterator<InputNode>): Promise<string> {
     if (!this.pluginInterface.persistentOutput) {
-      rimraf.sync(this.outputPath);
+      fs.rmSync(this.outputPath, { recursive: true, force: true });
       fs.mkdirSync(this.outputPath);
     }
 
@@ -101,9 +100,9 @@ export default class ReadCompat {
           const forceReSymlinking = !symlinkOrCopy.canSymlink || hasDifferentPath;
 
           if (forceReSymlinking) {
-            // avoid `rimraf.sync` for initial build
+            // avoid `fs.rmSync` for initial build
             if (priorPath) {
-              rimraf.sync(this.inputPaths[i]);
+              fs.rmSync(this.inputPaths[i], { recursive: true, force: true });
             }
 
             symlinkOrCopySync(currentPath as string, this.inputPaths[i]);

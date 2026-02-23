@@ -61,7 +61,7 @@ describe('integration test', function () {
     const Builder = broccoli.Builder;
 
     before(function () {
-      if (broccoliVersion!== '0.16.9') {
+      if (broccoliVersion !== '0.16.9') {
         this.skip();
       }
     });
@@ -291,140 +291,138 @@ describe('integration test', function () {
     });
   });
 
-  
-    const Builder = broccoli.Builder;
+  const Builder = broccoli.Builder;
 
-    // Call .build on the builder and return outputPath; works across Builder
-    // versions
-    function build(builder) {
-      return Promise.resolve()
-        .then(function () {
-          return builder.build();
+  // Call .build on the builder and return outputPath; works across Builder
+  // versions
+  function build(builder) {
+    return Promise.resolve()
+      .then(function () {
+        return builder.build();
+      })
+      .then(function (hash) {
+        return /^0\./.test(broccoliVersion) ? hash.directory : builder.outputPath;
+      });
+  }
+
+  describe('Broccoli ' + broccoliVersion, function () {
+    it('works without errors', function () {
+      builder = new Builder(new AnnotatingPlugin([node1, node2]));
+      return expect(
+        build(builder).then(function (outputPath) {
+          return fixturify.readSync(outputPath);
         })
-        .then(function (hash) {
-          return /^0\./.test(broccoliVersion) ? hash.directory : builder.outputPath;
-        });
-    }
-
-    describe('Broccoli ' + broccoliVersion, function () {
-      it('works without errors', function () {
-        builder = new Builder(new AnnotatingPlugin([node1, node2]));
-        return expect(
-          build(builder).then(function (outputPath) {
-            return fixturify.readSync(outputPath);
-          })
-        ).to.eventually.deep.equal({
-          'foo.txt': 'foo contents - from input node #0',
-          'bar.txt': 'bar contents - from input node #1',
-        });
-      });
-
-      describe('persistent fs', function () {
-        class BuildOnce extends Plugin {
-          build() {
-            if (!this.builtOnce) {
-              this.builtOnce = true;
-              fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
-            }
-          }
-        }
-
-        function isPersistent(options) {
-          const buildOnce = new BuildOnce([], options);
-          const builder = new Builder(buildOnce);
-          function buildAndCheckExistence() {
-            return build(builder).then(function () {
-              return buildOnce.output.existsSync('foo.txt');
-            });
-          }
-          return expect(buildAndCheckExistence())
-            .to.eventually.equal(true)
-            .then(buildAndCheckExistence)
-            .finally(function () {
-              builder.cleanup();
-            });
-        }
-
-        it('is not persistent by default', function () {
-          return expect(isPersistent({})).to.eventually.equal(false);
-        });
-
-        it('is not persistent when persistentOutput is false', function () {
-          return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
-        });
-
-        it('is persistent when persistentOutput is true', function () {
-          return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
-        });
-      });
-
-      describe('persistent InputOutput', function () {
-        class BuildOnce extends Plugin {
-          build() {
-            if (!this.builtOnce) {
-              this.builtOnce = true;
-              this.output.writeFileSync('foo.txt', 'test');
-            }
-          }
-        }
-
-        function isPersistent(options) {
-          const buildOnce = new BuildOnce([], options);
-          const builder = new Builder(buildOnce);
-          function buildAndCheckExistence() {
-            return build(builder).then(function () {
-              return buildOnce.output.existsSync('foo.txt');
-            });
-          }
-          return expect(buildAndCheckExistence())
-            .to.eventually.equal(true)
-            .then(buildAndCheckExistence)
-            .finally(function () {
-              builder.cleanup();
-            });
-        }
-
-        it('is not persistent by default', function () {
-          return expect(isPersistent({})).to.eventually.equal(false);
-        });
-
-        it('is not persistent when persistentOutput is false', function () {
-          return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
-        });
-
-        it('is persistent when persistentOutput is true', function () {
-          return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
-        });
-      });
-
-      describe('needsCache', async function () {
-        async function hasCacheDirectory(options) {
-          const plugin = new NoopPlugin([], options);
-          const builder = new Builder(plugin);
-
-          try {
-            await build(builder);
-            if (plugin.cachePath != null) {
-              expect(fs.existsSync(plugin.cachePath)).to.equal(true);
-            }
-            return plugin.cachePath != null;
-          } finally {
-            builder.cleanup();
-          }
-        }
-
-        it('has cache directory by default', function () {
-          return expect(hasCacheDirectory()).to.eventually.equal(true);
-        });
-
-        it('has no cache directory when needsCache is false', function () {
-          return expect(hasCacheDirectory({ needsCache: false })).to.eventually.equal(false);
-        });
-
-        it('has cache directory when needsCache is true', function () {
-          return expect(hasCacheDirectory({ needsCache: true })).to.eventually.equal(true);
-        });
+      ).to.eventually.deep.equal({
+        'foo.txt': 'foo contents - from input node #0',
+        'bar.txt': 'bar contents - from input node #1',
       });
     });
-  
+
+    describe('persistent fs', function () {
+      class BuildOnce extends Plugin {
+        build() {
+          if (!this.builtOnce) {
+            this.builtOnce = true;
+            fs.writeFileSync(path.join(this.outputPath, 'foo.txt'), 'test');
+          }
+        }
+      }
+
+      function isPersistent(options) {
+        const buildOnce = new BuildOnce([], options);
+        const builder = new Builder(buildOnce);
+        function buildAndCheckExistence() {
+          return build(builder).then(function () {
+            return buildOnce.output.existsSync('foo.txt');
+          });
+        }
+        return expect(buildAndCheckExistence())
+          .to.eventually.equal(true)
+          .then(buildAndCheckExistence)
+          .finally(function () {
+            builder.cleanup();
+          });
+      }
+
+      it('is not persistent by default', function () {
+        return expect(isPersistent({})).to.eventually.equal(false);
+      });
+
+      it('is not persistent when persistentOutput is false', function () {
+        return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
+      });
+
+      it('is persistent when persistentOutput is true', function () {
+        return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
+      });
+    });
+
+    describe('persistent InputOutput', function () {
+      class BuildOnce extends Plugin {
+        build() {
+          if (!this.builtOnce) {
+            this.builtOnce = true;
+            this.output.writeFileSync('foo.txt', 'test');
+          }
+        }
+      }
+
+      function isPersistent(options) {
+        const buildOnce = new BuildOnce([], options);
+        const builder = new Builder(buildOnce);
+        function buildAndCheckExistence() {
+          return build(builder).then(function () {
+            return buildOnce.output.existsSync('foo.txt');
+          });
+        }
+        return expect(buildAndCheckExistence())
+          .to.eventually.equal(true)
+          .then(buildAndCheckExistence)
+          .finally(function () {
+            builder.cleanup();
+          });
+      }
+
+      it('is not persistent by default', function () {
+        return expect(isPersistent({})).to.eventually.equal(false);
+      });
+
+      it('is not persistent when persistentOutput is false', function () {
+        return expect(isPersistent({ persistentOutput: false })).to.eventually.equal(false);
+      });
+
+      it('is persistent when persistentOutput is true', function () {
+        return expect(isPersistent({ persistentOutput: true })).to.eventually.equal(true);
+      });
+    });
+
+    describe('needsCache', async function () {
+      async function hasCacheDirectory(options) {
+        const plugin = new NoopPlugin([], options);
+        const builder = new Builder(plugin);
+
+        try {
+          await build(builder);
+          if (plugin.cachePath != null) {
+            expect(fs.existsSync(plugin.cachePath)).to.equal(true);
+          }
+          return plugin.cachePath != null;
+        } finally {
+          builder.cleanup();
+        }
+      }
+
+      it('has cache directory by default', function () {
+        return expect(hasCacheDirectory()).to.eventually.equal(true);
+      });
+
+      it('has no cache directory when needsCache is false', function () {
+        return expect(hasCacheDirectory({ needsCache: false })).to.eventually.equal(false);
+      });
+
+      it('has cache directory when needsCache is true', function () {
+        return expect(hasCacheDirectory({ needsCache: true })).to.eventually.equal(true);
+      });
+    });
+  });
 });

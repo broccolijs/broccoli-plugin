@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: "Tests - Node ${{ matrix.node-version }}"
+    name: "Tests - Node ${{ matrix.node-version }} - Broccoli ${{ matrix.broccoli-version }}"
     runs-on: "ubuntu-latest"
 
     strategy:
@@ -28,7 +28,7 @@ jobs:
     - run: yarn test
 
   windows-test:
-    name: "Windows smoke tests"
+    name: "Windows smoke tests - Broccoli ${{ matrix.broccoli-version }}"
     runs-on: "windows-latest"
 
     strategy:

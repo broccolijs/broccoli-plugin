@@ -53,7 +53,8 @@ jobs:
       fail-fast: false
       matrix:
         broccoli-version: ["0.16.9", "1", "2", "3"]
-        node-version: [14.x, 16.x, 18.x, 20.x, 22.x, 24.x]
+        # when github updates their latest 24.x to include this patch number we can remove the specific version here
+        node-version: [14.x, 16.x, 18.x, 20.x, 22.x, 24.13.1]
 
     steps:
     - uses: actions/checkout@v6

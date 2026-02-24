@@ -1,5 +1,23 @@
 # Changelog
 
+## Release (2026-02-24)
+
+* broccoli-plugin 5.0.0 (major)
+
+#### :boom: Breaking Change
+* `broccoli-plugin`
+  * [#81](https://github.com/broccolijs/broccoli-plugin/pull/81) swap to esm only - drop support for require() to load this package pre node v20.19 ([@mansona](https://github.com/mansona))
+  * [#79](https://github.com/broccolijs/broccoli-plugin/pull/79) Drop support for Node < v14.14 and remove rimraf dependency ([@mansona](https://github.com/mansona))
+
+#### :house: Internal
+* `broccoli-plugin`
+  * [#78](https://github.com/broccolijs/broccoli-plugin/pull/78) start using release-plan ([@mansona](https://github.com/mansona))
+  * [#77](https://github.com/broccolijs/broccoli-plugin/pull/77) swap to pnpm ([@mansona](https://github.com/mansona))
+  * [#76](https://github.com/broccolijs/broccoli-plugin/pull/76) remove multidep and add tests for broccoli@4 ([@mansona](https://github.com/mansona))
+
+#### Committers: 1
+- Chris Manson ([@mansona](https://github.com/mansona))
+
 ## v4.0.7 (2021-05-03)
 
 #### :bug: Bug Fix

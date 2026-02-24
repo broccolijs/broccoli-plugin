@@ -1,9 +1,9 @@
-'use strict';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const Plugin = require('../dist/index');
-const chai = require('chai'),
-  expect = chai.expect;
-const chaiAsPromised = require('chai-as-promised');
+import Plugin from '../dist/index.js';
+
+const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 class NoopPlugin extends Plugin {

@@ -1,18 +1,22 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import fixturify from 'fixturify';
+import Fixturify from 'broccoli-fixturify';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import broccoli from 'broccoli';
+import quickTemp from 'quick-temp';
+import symlinkOrCopy from 'symlink-or-copy';
 
-const fs = require('fs');
-const path = require('path');
-const fixturify = require('fixturify');
-const Fixturify = require('broccoli-fixturify');
-const Plugin = require('../dist/index');
-const chai = require('chai'),
-  expect = chai.expect;
-const chaiAsPromised = require('chai-as-promised');
-chai.use(chaiAsPromised);
-const broccoli = require('broccoli');
+import Plugin from '../dist/index.js';
+
+// this is to avoid having to update eslint to support import attributes to import a json file
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 const broccoliPkg = require('broccoli/package.json');
-const quickTemp = require('quick-temp');
-const symlinkOrCopy = require('symlink-or-copy');
+
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 const broccoliVersion = broccoliPkg.version;
 

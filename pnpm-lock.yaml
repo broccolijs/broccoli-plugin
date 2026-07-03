@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  quick-temp: 0.1.8
-
 importers:
 
   .:
@@ -23,9 +20,6 @@ importers:
       promise-map-series:
         specifier: ^0.3.0
         version: 0.3.0
-      quick-temp:
-        specifier: 0.1.8
-        version: 0.1.8
       symlink-or-copy:
         specifier: ^1.3.1
         version: 1.3.1

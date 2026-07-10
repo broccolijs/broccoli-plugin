@@ -72,25 +72,6 @@ describe('unit tests', function () {
       new TestPlugin([new TestPlugin([])]);
     });
 
-    it('disallows overriding read, cleanup, and rebuild', function () {
-      const prohibitedNames = ['read', 'rebuild', 'cleanup'];
-      for (let i = 0; i < prohibitedNames.length; i++) {
-        class BadPlugin extends Plugin {
-          build() {
-            // empty function
-          }
-        }
-
-        BadPlugin.prototype[prohibitedNames[i]] = () => {
-          /* empty function */
-        };
-
-        expect(function () {
-          new BadPlugin([]);
-        }).to.throw(/For compatibility, plugins must not define/);
-      }
-    });
-
     it('checks that the inputNodes argument is an array', function () {
       expect(function () {
         new NoopPlugin('notAnArray');

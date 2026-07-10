@@ -8,7 +8,6 @@ import {
 
 import type { MapSeriesIterator, PluginOptions } from './interfaces';
 
-import ReadCompat from './read_compat.js';
 import { FSOutput } from 'broccoli-output-wrapper';
 
 // @ts-expect-error the types are declared wrong upstream here
@@ -67,8 +66,6 @@ export default class Plugin implements TransformNode {
   private _volatile: boolean;
   private _trackInputChanges: boolean;
   private _instantiationError: Error;
-  private _readCompatError?: Error;
-  private _readCompat?: ReadCompat | false;
   private rebuild?: () => void;
 
   __broccoliFeatures__: FeatureSet;
@@ -118,8 +115,6 @@ export default class Plugin implements TransformNode {
     this._volatile = !!options.volatile;
     this._trackInputChanges = !!options.trackInputChanges;
 
-    this._checkOverrides();
-
     // For future extensibility, we version the API using feature flags
     this.__broccoliFeatures__ = BROCCOLI_FEATURES;
   }
@@ -166,18 +161,6 @@ export default class Plugin implements TransformNode {
     }
 
     return FSFACADE.get(this).output;
-  }
-
-  private _checkOverrides() {
-    if (typeof this.rebuild === 'function') {
-      throw new Error('For compatibility, plugins must not define a plugin.rebuild() function');
-    }
-    if (this.read !== Plugin.prototype.read) {
-      throw new Error('For compatibility, plugins must not define a plugin.read() function');
-    }
-    if (this.cleanup !== Plugin.prototype.cleanup) {
-      throw new Error('For compatibility, plugins must not define a plugin.cleanup() function');
-    }
   }
 
   // The Broccoli builder calls plugin.__broccoliGetInfo__
@@ -290,33 +273,5 @@ export default class Plugin implements TransformNode {
    */
   build(): Promise<void> | void {
     throw new Error('Plugin subclasses must implement a .build() function');
-  }
-
-  // Compatibility code so plugins can run on old, .read-based Broccoli:
-  read(readTree: MapSeriesIterator<InputNode>): Promise<string> | undefined {
-    if (this._readCompat == null) {
-      try {
-        this._initializeReadCompat(); // call this.__broccoliGetInfo__()
-      } catch (err) {
-        // Prevent trying to initialize again on next .read
-        this._readCompat = false;
-        // Remember error so we can throw it on all subsequent .read calls
-        this._readCompatError = err as unknown as Error;
-      }
-    }
-
-    if (this._readCompatError != null) throw this._readCompatError;
-
-    if (this._readCompat) {
-      return this._readCompat.read(readTree);
-    }
-  }
-
-  async cleanup(): Promise<void> {
-    if (this._readCompat) return this._readCompat.cleanup();
-  }
-
-  private _initializeReadCompat() {
-    this._readCompat = new ReadCompat(this);
   }
 }

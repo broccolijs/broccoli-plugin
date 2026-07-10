@@ -1,5 +1,16 @@
 # Changelog
 
+## Release (2026-07-10)
+
+* broccoli-plugin 6.0.0 (major)
+
+#### :boom: Breaking Change
+* `broccoli-plugin`
+  * [#82](https://github.com/broccolijs/broccoli-plugin/pull/82) drop support for ancient broccoli version - only support broccoli >= 1.0.0 ([@mansona](https://github.com/mansona))
+
+#### Committers: 1
+- Chris Manson ([@mansona](https://github.com/mansona))
+
 ## Release (2026-02-24)
 
 * broccoli-plugin 5.0.0 (major)
